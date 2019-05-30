@@ -1,0 +1,6 @@
+# ignore all logs
+**/logs
+# ignore all json
+*.json
+# ignore all pyc
+*.pyc
