@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+        <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='main.css') }}>
+<style>
+    body {
+        background: #0d1115;
+        background: -moz-linear-gradient(top, #0d1115 0%, #19232c 100%);
+        background: -webkit-linear-gradient(top, #0d1115 0%, #19232c 100%);
+        background: linear-gradient(to bottom, #0d1115 0%, #19232c 100%);
+        margin: 0;
+        padding: 0;
+    }
+    .link {
+        stroke: #ccc;
+    }
+
+    .text {
+        pointer-events: none;
+        color: white;
+        font: 10px sans-serif;
+    }
+    .svg-div{
+     margin-top: 20%
+     display: block;
+     z-index:100;
+     /* margin: 0 auto; */
+     }
+     #canvas-wrap { position:relative } /* Make this a positioned parent */
+    #overlay { position:absolute; top:20px; left:30px; }
+</style>
+</head>
+<body>
+    <div class="navbar" id= "nav">
+        <a href="#Home">NetVis</a>
+        <div class="dropdown">
+            <a class="drop" href="#Home">Metrics 
+                <i class="fa fa-angle-double-down"></i>
+                <i class="fa fa-angle-double-up"></i>
+            </a>
+            <div class="drop-content">
+                <a href="#Prod1">Drop 1</a>
+                <a href="#Prod2">Prod 2</a>
+                <a href="#Prod3">Prod 3</a>
+            </div>
+        </div>
+        <a href="#Portfolio">Incidents</a>
+        <a href="#Blog">Events</a>
+        <a href="#Content">About</a>
+        <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
+    </div>
+            
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src={{ url_for('static', filename='js/main.js') }}></script>
+    <div id="canvas-wrap">
+        <canvas id="sky">
+            
+        </canvas>
+        <div id="overlay">
+            <div class="svg-div">
+                <center>
+                </center>
+            </div>
+        </div>
+    </div>
+       
+    
+    <script>
+    window.onload = function() {
+        var canvas = document.getElementById("sky");
+        var ctx = canvas.getContext("2d");
+
+        var W = window.innerWidth;
+        var H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+
+        var count = 100;
+        var stars = [];
+        var opacity = 0.5;
+        var r = 0;
+
+        function draw(j) {
+            ctx.fillStyle = "rgba(255,255,255," + opacity + ")";
+            ctx.beginPath();
+            if (opacity === 1) {
+                size = 2;
+            } else {
+                size = stars[j].size;
+            }
+            ctx.rect(stars[j].xpos, stars[j].ypos, size, size);
+            ctx.fill();
+        }
+
+        function newStar() {
+            r = Math.floor(Math.random() * (count - 0));
+            opacity = 1;
+        }
+
+        function starLight() {
+            var star = stars[r];
+            ctx.clearRect(star.xpos, star.ypos, 2, 2);
+            draw(r);
+            opacity -= 0.01;
+
+            if (opacity <= star.op) {
+                newStar();
+            }
+        }
+
+        for (var i = 0; i < count; i++) {
+            opacity += 0.5 / count;
+            stars.push({
+                xpos: Math.floor(Math.random() * W),
+                ypos: Math.floor(Math.random() * H),
+                size: 1,
+                op: opacity
+            });
+            draw(i);
+        }
+
+        newStar();
+        setInterval(starLight, 20);
+        setInterval(starLight, 30);
+    };
+
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>
+        $.ajaxSetup({beforeSend: function(xhr){
+        if (xhr.overrideMimeType)
+        {
+            xhr.overrideMimeType("application/json");
+        }
+        }
+        });
+        var previous = null;
+        var current = null;
+        setInterval(function() {
+            $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
+                current = JSON.stringify(json);            
+                if (previous && current && previous !== current) {
+                    location.reload();
+                }
+                previous = current;
+            });                       
+        }, 5000);   
+    </script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+        var width = 1400,
+            height = 725
+
+        var svg = d3.select("center").append("svg")
+            .attr("width", width)
+            .attr("height", height); 
+
+        var force = d3.forceSimulation() 
+            .force("charge", d3.forceManyBody().strength(-500).distanceMin(50).distanceMax(200)) 
+            .force("link", d3.forceLink().id(function(d) { return d.index }).distance(250).strength(0.5)) 
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("y", d3.forceY(0.001))
+            .force("x", d3.forceX(0.001))
+
+        var color = function (group) {
+            if (group == 1) {
+                return "#aaa"
+            } else if (group == 2) {
+                return "#fbc280"
+            } else {
+                return "#405275"
+            }
+        }
+        function dragstarted(d) {
+            if (!d3.event.active) force.alphaTarget(0.6).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+        
+        function dragended(d) {
+            if (!d3.event.active) force.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        } 
+        
+        d3.json("{{ url_for('static', filename='graph.json') }}", function (error, json) {
+            if (error) throw error; 
+            force
+                .nodes(json.nodes) 
+                .force("link").links(json.links)
+                
+
+            var link = svg.selectAll(".link")
+                .data(json.links)
+                .enter()
+                .append("line")
+                .attr("class", "link")
+                .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return d.size * 10})
+                .attr("opacity", 0.7)
+                .style("stroke", function(d) { if(d.value==0){return "red"} else{return "green"} });
+
+            var node = svg.selectAll(".node")
+                .data(json.nodes)
+                .enter().append("g")
+                .attr("class", "node")
+                .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));  
+            
+                var tip;
+                node.on("mouseover", function(d){
+                    // d3.select(this).select("circle").transition()
+                    //     .duration(750)
+                    //     .attr("r", 25)
+                    //     .attr("depth", 100);
+                    d3.event.stopPropagation(); 
+                
+                    if (tip) tip.remove();
+                    
+                    tip  = svg.append("g")
+                    .attr("transform", "translate(" + d.x  + "," + d.y + ")");
+                    
+                    var rect = tip.append("rect")
+                    .style("width", "400px")
+                    .style("height", "120px")
+                    .style("fill", "green")
+                    // .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
+                    .style("stroke", "steelblue");
+                    
+                    tip.append("text")
+                    .text("Name: " + d.name)
+                    .attr("dy", "1em")
+                    .attr("x", 5)
+                    .style("fill", "white");
+                    
+                    tip.append("text")
+                    .text("Info: " + d.group)
+                    .attr("dy", "2em")
+                    .attr("x", 5)
+                    .style("fill", "white");
+
+                    var con = json.links
+                    .filter(function(d1){
+                        return d1.source.name === d.name;
+                    })
+                    .map(function(d1){
+                        return d1.target.name;
+                    });
+                    
+                    // tip.append("text")
+                    // .text("Connected to: " + con.join(",\n"))
+                    // .attr("dy", "3em")
+                    // .attr("x", 5)
+                    // .style("fill", "white");
+                    
+                    var bbox = tip.node().getBBox();
+                    rect.attr("width", bbox.width + 5)
+                        .attr("height", bbox.height + 5)
+                    
+                });
+                node.on("mouseout", function(d){
+                    // d3.select(this).select("circle").transition()
+                    //     .duration(750)
+                    //     .attr("r", 10);
+                    d3.event.stopPropagation(); 
+                
+                    if (tip) tip.remove();
+                });
+            
+                json.links.forEach(function(link){
+
+                // initialize a new property on the node
+                if (!link.source["linkCount"]) link.source["linkCount"] = 0; 
+                if (!link.target["linkCount"]) link.target["linkCount"] = 0;
+
+                // count it up
+                link.source["linkCount"]++;
+                link.target["linkCount"]++;    
+                });
+            node.append('circle')
+                .attr('r', function(d){
+                    return d.linkCount ? 10+(d.linkCount * 1.5) : 10;
+                })
+                .attr('fill', function (d) {
+                    return color(d.group);
+                })
+                .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
+                
+
+            node.append("text")
+                .attr("dx", -18)
+                .attr("dy", 8)
+                .style("font-family", "overwatch")
+                .style("font-size", "15px")
+                .style("fill", "white")
+
+                .text(function (d) {
+                    return d.name
+                });
+
+            force.on("tick", function () {
+                link.attr("x1", function (d) {
+                        return d.source.x;
+                    })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    });
+                node.attr("transform", function (d) {
+                    return "translate(" + d.x + "," + d.y + ")";
+                });
+            });
+        });
+    </script>
+</body>
