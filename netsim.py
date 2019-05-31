@@ -134,7 +134,7 @@ class TCP_Attacks():
             if(last_packet[ip] != first_packet[ip]):
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
                     ips = ip.split(':')
-                    log = "Attacker: "+ips[0]+" Victim: "+ips[1]+" Possible Attack: SYN FLOODING(Direct)\n"
+                    log = ips[0]+","+ips[1]+",SYN FLOODING(Direct)\n"
                     with open(LOGFILE, 'r+') as f:
                         for line in f:
                             if log in line:

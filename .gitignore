@@ -4,3 +4,6 @@
 *.json
 # ignore all pyc
 *.pyc
+__pycache__/
+.env
+.vscode

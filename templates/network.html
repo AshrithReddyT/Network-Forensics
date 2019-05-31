@@ -3,7 +3,7 @@
 <head>
         <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='main.css') }}>
+        <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/main.css') }}>
 <style>
     body {
         background: #0d1115;
@@ -34,7 +34,7 @@
 </head>
 <body>
     <div class="navbar" id= "nav">
-        <a href="#Home">NetVis</a>
+        <a href="{{ url_for('index') }}">NetVis</a>
         <div class="dropdown">
             <a class="drop" href="#Home">Metrics 
                 <i class="fa fa-angle-double-down"></i>
@@ -47,7 +47,7 @@
             </div>
         </div>
         <a href="#Portfolio">Incidents</a>
-        <a href="#Blog">Events</a>
+        <a href="{{ url_for('events') }}">Events</a>
         <a href="#Content">About</a>
         <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
     </div>
@@ -151,7 +151,7 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
         var width = 1400,
-            height = 725
+            height = 625
 
         var svg = d3.select("center").append("svg")
             .attr("width", width)
@@ -199,9 +199,9 @@
 
             var link = svg.selectAll(".link")
                 .data(json.links)
-                .enter()
-                .append("line")
+                .enter().append("path")
                 .attr("class", "link")
+                .attr("fill", "none")
                 .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return d.size * 10})
                 .attr("opacity", 0.7)
                 .style("stroke", function(d) { if(d.value==0){return "red"} else{return "green"} });
@@ -229,8 +229,8 @@
                     .attr("transform", "translate(" + d.x  + "," + d.y + ")");
                     
                     var rect = tip.append("rect")
-                    .style("width", "400px")
-                    .style("height", "120px")
+                    // .style("width", "400px")
+                    // .style("height", "120px")
                     .style("fill", "green")
                     // .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
                     .style("stroke", "steelblue");
@@ -262,8 +262,8 @@
                     // .style("fill", "white");
                     
                     var bbox = tip.node().getBBox();
-                    rect.attr("width", bbox.width + 5)
-                        .attr("height", bbox.height + 5)
+                    rect.attr("width", bbox.width+ 5)
+                        .attr("height", bbox.height+5)
                     
                 });
                 node.on("mouseout", function(d){
@@ -293,6 +293,8 @@
                     return color(d.group);
                 })
                 .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
+                .on("mouseover", fade(.2))
+                .on("mouseout", fade(1));
                 
 
             node.append("text")
@@ -307,22 +309,48 @@
                 });
 
             force.on("tick", function () {
-                link.attr("x1", function (d) {
-                        return d.source.x;
-                    })
-                    .attr("y1", function (d) {
-                        return d.source.y;
-                    })
-                    .attr("x2", function (d) {
-                        return d.target.x;
-                    })
-                    .attr("y2", function (d) {
-                        return d.target.y;
-                    });
+                link.attr("d", function(d) {
+                var dx = d.target.x - d.source.x,
+                    dy = d.target.y - d.source.y,
+                    dr = Math.sqrt(dx * dx + dy * dy);
+                return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+                });
                 node.attr("transform", function (d) {
                     return "translate(" + d.x + "," + d.y + ")";
                 });
             });
+                // build a dictionary of nodes that are linked
+            var linkedByIndex = {};
+            json.links.forEach(function(d) {
+                linkedByIndex[d.source.name + "," + d.target.name] = 1;
+            });
+
+            // check the dictionary to see if nodes are linked
+            function isConnected(a, b) {
+                return linkedByIndex[a.name + "," + b.name] || linkedByIndex[b.name + "," + a.name] || a.name == b.name;
+            }
+
+            // fade nodes on hover
+            function fade(opacity) {
+                return function(d) {
+                    // check all other nodes to see if they're connected
+                    // to this one. if so, keep the opacity at 1, otherwise
+                    // fade
+                    node.style("stroke-opacity", function(o) {
+                        thisOpacity = isConnected(d, o) ? 1 : opacity;
+                        return thisOpacity;
+                    });
+                    node.style("fill-opacity", function(o) {
+                        thisOpacity = isConnected(d, o) ? 1 : opacity;
+                        return thisOpacity;
+                    });
+                    // also style link accordingly
+                    link.style("stroke-opacity", function(o) {
+                        return o.source === d || o.target === d ? 1 : opacity;
+                    });
+                };
+            }
+
         });
     </script>
 </body>
