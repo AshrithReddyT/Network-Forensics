@@ -16,6 +16,10 @@
     .link {
         stroke: #ccc;
     }
+    .link {
+    opacity: 0.65;
+    stroke-dasharray: 10, 4;
+    }
 
     .text {
         pointer-events: none;
@@ -206,7 +210,15 @@
                 .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return d.size * 10})
                 .attr("opacity", 0.7)
                 .style("stroke", function(d) { if(d.value==0){return "red"} else{return "green"} });
+            
+                var lines = d3.selectAll('path');
 
+                // Updates the offset of dashes every 50ms:
+                var offset = 1;
+                setInterval( function() {
+                lines.style('stroke-dashoffset', offset);
+                offset += 1; 
+                }, 50); 
             var node = g.selectAll(".node")
                 .data(json.nodes)
                 .enter().append("g")
