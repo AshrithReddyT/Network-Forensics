@@ -55,11 +55,11 @@
     <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script type="text/javascript" src={{ url_for('static', filename='js/main.js') }}></script>
     <div id="canvas-wrap">
-        <canvas id="sky">
+        <canvas id="sky" style="width:50%, height:100%">
             
         </canvas>
-        <div id="overlay">
-            <div class="svg-div">
+        <div id="overlay" style="margin-left: 50%">
+            <div class="svg-div" style="width:600px">
                 <center>
                 </center>
             </div>
@@ -129,28 +129,28 @@
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>
-        $.ajaxSetup({beforeSend: function(xhr){
-        if (xhr.overrideMimeType)
-        {
-            xhr.overrideMimeType("application/json");
-        }
-        }
-        });
-        var previous = null;
-        var current = null;
-        setInterval(function() {
-            $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
-                current = JSON.stringify(json);            
-                if (previous && current && previous !== current) {
-                    location.reload();
-                }
-                previous = current;
-            });                       
-        }, 5000);   
+            $.ajaxSetup({beforeSend: function(xhr){
+            if (xhr.overrideMimeType)
+            {
+                xhr.overrideMimeType("application/json");
+            }
+            }
+            });
+            var previous = null;
+            var current = null;
+            setInterval(function() {
+                $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
+                    current = JSON.stringify(json);            
+                    if (previous && current && previous !== current) {
+                        location.reload();
+                    }
+                    previous = current;
+                });                       
+            }, 5000);   
     </script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
-        var width = 1400,
+        var width = 600,
             height = 625
 
         var svg = d3.select("center").append("svg")
@@ -190,7 +190,7 @@
             d.fx = null;
             d.fy = null;
         } 
-        
+
         d3.json("{{ url_for('static', filename='graph.json') }}", function (error, json) {
             if (error) throw error; 
             force
@@ -216,68 +216,29 @@
                 .on("drag", dragged)
                 .on("end", dragended))
                 .on("click", function(d) {window.location = "http://127.0.0.1:8000/viewnode?node=" + d.name});  
-                
-                var tip;
-                node.on("mouseover", function(d){
-                    // d3.select(this).select("circle").transition()
-                    //     .duration(750)
-                    //     .attr("r", 25)
-                    //     .attr("depth", 100);
-                    d3.event.stopPropagation(); 
-                
-                    if (tip) tip.remove();
-                    
-                    tip  = svg.append("g")
-                    .attr("transform", "translate(" + d.x  + "," + d.y + ")");
-                    
-                    var rect = tip.append("rect")
-                    // .style("width", "400px")
-                    // .style("height", "120px")
-                    .style("fill", "green")
-                    // .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
-                    .style("stroke", "steelblue");
-                    
-                    tip.append("text")
-                    .text("Name: " + d.name)
-                    .attr("dy", "1em")
-                    .attr("x", 5)
-                    .style("fill", "white");
-                    
-                    tip.append("text")
-                    .text("Info: " + d.group)
-                    .attr("dy", "2em")
-                    .attr("x", 5)
-                    .style("fill", "white");
+                var dd = "{{ node }}";
+                var linkedByIndex = {};
+                json.links.forEach(function(d) {
+                    linkedByIndex[d.source.name + "," + d.target.name] = 1;
+                });
 
-                    var con = json.links
-                    .filter(function(d1){
-                        return d1.source.name === d.name;
-                    })
-                    .map(function(d1){
-                        return d1.target.name;
-                    });
-                    
-                    // tip.append("text")
-                    // .text("Connected to: " + con.join(",\n"))
-                    // .attr("dy", "3em")
-                    // .attr("x", 5)
-                    // .style("fill", "white");
-                    
-                    var bbox = tip.node().getBBox();
-                    rect.attr("width", bbox.width+ 5)
-                        .attr("height", bbox.height+5)
-                    
-                });
-                node.on("mouseout", function(d){
-                    // d3.select(this).select("circle").transition()
-                    //     .duration(750)
-                    //     .attr("r", 10);
-                    d3.event.stopPropagation(); 
-                
-                    if (tip) tip.remove();
-                });
-            
-                json.links.forEach(function(link){
+                // check the dictionary to see if nodes are linked
+            function isConnected(a, b) {
+                return linkedByIndex[a + "," + b.name] || linkedByIndex[b.name + "," + a] || a == b.name;
+            }
+            node.style("stroke-opacity", function(o) {
+                thisOpacity = isConnected(dd, o) ? 1 : 0;
+                return thisOpacity;
+            });
+            node.style("fill-opacity", function(o) {
+                thisOpacity = isConnected(dd, o) ? 1 : 0;
+                return thisOpacity;
+            });
+            link.style("stroke-opacity", function(o) {
+                return o.source.name === dd || o.target.name === dd ? 1 : 0;
+            });
+
+            json.links.forEach(function(link){
 
                 // initialize a new property on the node
                 if (!link.source["linkCount"]) link.source["linkCount"] = 0; 
@@ -286,7 +247,7 @@
                 // count it up
                 link.source["linkCount"]++;
                 link.target["linkCount"]++;    
-                });
+            });
             node.append('circle')
                 .attr('r', function(d){
                     return d.linkCount ? 10+(d.linkCount * 1.5) : 10;
@@ -295,9 +256,6 @@
                     return color(d.group);
                 })
                 .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
-                .on("mouseover", fade(.2))
-                .on("mouseout", fade(1));
-            
 
             node.append("text")
                 .attr("dx", -18)
@@ -329,37 +287,6 @@
                 g.attr("transform", d3.event.transform)
             } 
                 // build a dictionary of nodes that are linked
-            var linkedByIndex = {};
-            json.links.forEach(function(d) {
-                linkedByIndex[d.source.name + "," + d.target.name] = 1;
             });
-
-            // check the dictionary to see if nodes are linked
-            function isConnected(a, b) {
-                return linkedByIndex[a.name + "," + b.name] || linkedByIndex[b.name + "," + a.name] || a.name == b.name;
-            }
-
-            // fade nodes on hover
-            function fade(opacity) {
-                return function(d) {
-                    // check all other nodes to see if they're connected
-                    // to this one. if so, keep the opacity at 1, otherwise
-                    // fade
-                    node.style("stroke-opacity", function(o) {
-                        thisOpacity = isConnected(d, o) ? 1 : opacity;
-                        return thisOpacity;
-                    });
-                    node.style("fill-opacity", function(o) {
-                        thisOpacity = isConnected(d, o) ? 1 : opacity;
-                        return thisOpacity;
-                    });
-                    // also style link accordingly
-                    link.style("stroke-opacity", function(o) {
-                        return o.source === d || o.target === d ? 1 : opacity;
-                    });
-                };
-            }
-
-        });
     </script>
 </body>

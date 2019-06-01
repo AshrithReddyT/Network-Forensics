@@ -39,12 +39,21 @@
 
         /*Responsive table*/
         table {
-        width: 100%;
+        width: 1400px;
         border-collapse: collapse;
         background: #34495e;
         color: #f3f3f3;
         }
+        thead, tbody { display: block; }
 
+        tbody {
+            height: 575px;       /* Just for the demo          */
+            overflow-y: auto;    /* Trigger vertical scroll    */
+            overflow-x: hidden;  /* Hide the horizontal scroll */
+        }
+        tbody td, thead th {
+            width: 446px;
+        }
         td,
         th {
         padding: 8px;
@@ -82,8 +91,8 @@
                 <a href="#Prod3">Prod 3</a>
             </div>
         </div>
-        <a href="#Portfolio">Incidents</a>
-        <a href="{{ url_for('events') }}">Events</a>
+        <a href="#Portfolio">Events</a>
+        <a href="{{ url_for('incidents') }}">incidents</a>
         <a href="#Content">About</a>
         <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
     </div>
