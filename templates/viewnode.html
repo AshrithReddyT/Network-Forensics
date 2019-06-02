@@ -33,10 +33,13 @@
      /* margin: 0 auto; */
      }
      #canvas-wrap { position:relative } /* Make this a positioned parent */
-    #overlay { position:absolute; top:20px; left:30px; }
+    #overlay { position:absolute; top:20px; right:30px; left:30px;}
 </style>
 </head>
 <body>
+
+    
+
     <div class="navbar" id= "nav">
         <a href="{{ url_for('index') }}">NetVis</a>
         <div class="dropdown">
@@ -62,12 +65,20 @@
         <canvas id="sky" style="width:50%, height:100%">
             
         </canvas>
+
+
         <div id="overlay" style="margin-left: 50%">
-            <div class="svg-div" style="width:600px">
+            <div class="svg-div" style="width:700px">
                 <center>
                 </center>
             </div>
         </div>
+
+        <div id="overlay" style = "margin-right: 50%">
+                <centerl>
+                </centerl>
+        </div>
+
     </div>
        
     
@@ -152,7 +163,45 @@
                 });                       
             }, 5000);   
     </script>
-    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+
+        <script type="text/javascript"charset="utf-8">
+              var tabulate = function (data,columns) {
+              var table = d3.select('centerl').append('table')
+                var thead = table.append('thead')
+                var tbody = table.append('tbody')
+
+                thead.append('tr')
+                  .selectAll('th')
+                    .data(columns)
+                    .enter()
+                  .append('th')
+                    .text(function (d) { return d })
+
+                var rows = tbody.selectAll('tr')
+                    .data(data)
+                    .enter()
+                  .append('tr')
+
+                var cells = rows.selectAll('td')
+                    .data(function(row) {
+                        return columns.map(function (column) {
+                            return { column: column, value: row[column] }
+                      })
+                  })
+                  .enter()
+                .append('td')
+                  .text(function (d) { return d.value })
+
+              return table;
+            }
+
+            d3.csv("{{ url_for('static', filename='nmap.csv') }}",function (data) {
+                var columns = ['IP Address','FQDN','OS','Port','Protocol','Service','Name','Version']
+              tabulate(data,columns)
+            })
+        </script>
+
     <script>
         var width = 600,
             height = 625

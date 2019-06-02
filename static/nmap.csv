@@ -1,0 +1,6 @@
+IP Address,FQDN,OS,Port,Protocol,Service,Name,Version
+127.0.0.1,"localhost","",80,tcp,"http","Apache httpd","2.4.18"
+127.0.0.1,"localhost","",631,tcp,"ipp","CUPS","2.1"
+127.0.0.1,"localhost","",902,tcp,"vmware-auth","VMware Authentication Daemon","1.10"
+127.0.0.1,"localhost","",3306,tcp,"mysql","MySQL","5.7.26-0ubuntu0.16.04.1"
+127.0.0.1,"localhost","",8000,tcp,"http","Werkzeug httpd","0.14.1"
