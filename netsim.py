@@ -9,17 +9,22 @@ from multiprocessing import Process
 from collections import Counter
 import os
 import time
-LOGFILE = "logs/"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
-open(LOGFILE,"w").close()
+# from nmap_scan import *
+
+INCIDENTS_LOGFILE = "logs/incidents/incidents-"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
+EVENTS_LOGFILE = "logs/events/events-"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
+open(INCIDENTS_LOGFILE,"w").close()
+open(EVENTS_LOGFILE,"w").close()
 
 
-print(LOGFILE)
+# print(INCIDENTS_LOGFILE)
 prev_comm = []
 prev_devices = {}
 
 
 packets = []
 def createGraph(pkts):
+    malicious = {}
     global prev_devices
     global prev_comm
     comm_count = {}
@@ -49,7 +54,15 @@ def createGraph(pkts):
             # print(pkts[i].show())
         except:
             pass
-        
+
+    # ScanIps(devices.keys())    
+    with open(INCIDENTS_LOGFILE, 'r') as f:
+        line = f.readline()
+        while line:
+            words = line.split(',')
+            malicious[words[0]+":"+words[1]]=1
+            malicious[words[1]+":"+words[0]]=1
+            line = f.readline()
     G=nx.Graph()
     G.add_nodes_from(devices.keys())
     G.add_edges_from(comm)
@@ -64,11 +77,16 @@ def createGraph(pkts):
 
     if set(comm) == set(prev_comm) and set(devices.keys()) == set(prev_devices.keys()):
         return
-
+    
     all_nodes = list(G.nodes())
+    for u in G.edges():
+        if u[0]+":"+u[1] not in malicious:
+            malicious[u[0]+":"+u[1]] = 0
+            malicious[u[1]+":"+u[0]] = 0
+
     nodes = [{'name': str(i), 'group':int(random.randint(0,100))%2}
             for i in G.nodes()]
-    links = [{'source': all_nodes.index(u[0]), 'target': all_nodes.index(u[1]), 'value':int(random.randint(0,100))%2, 'size':comm_count[u[0]+":"+u[1]]/max}
+    links = [{'source': all_nodes.index(u[0]), 'target': all_nodes.index(u[1]), 'value':malicious[u[0]+":"+u[1]], 'size':comm_count[u[0]+":"+u[1]]/max}
             for u in G.edges()]
     with open('static/graph.json', 'w') as f:
         json.dump({'nodes': nodes, 'links': links}, f, indent=4,)
@@ -78,19 +96,20 @@ CACHE = {}
 STORE = 'store.h5'  
 packets = []
 yData=[]
-def process_row(d, key, max_len=5000, _cache=CACHE):
+flag = 0
+def process_row(d, key, max_len=100, _cache=CACHE):
     lst = _cache.setdefault(key, [])
     if len(lst) >= max_len:
         store_and_clear(lst, key)
     lst.append(d)
 
 def store_and_clear(lst, key):
+    global flag
     df = pd.DataFrame(lst)
-    with pd.HDFStore(STORE,mode='w') as store:
-        store.append(key, df, data_columns = ['Source IP','Destination IP','protocol'], max_itemsize = { 'protocol' : 50})
-        
-        print(store.get_storer('df').table)
-        
+    with open(EVENTS_LOGFILE, "r+") as f:
+        for index, row in df.iterrows():
+            # print(row['c1'], row['c2'])'
+            f.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+"\n")
     lst.clear()
 
 Previous_TCP = []
@@ -135,7 +154,7 @@ class TCP_Attacks():
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct)\n"
-                    with open(LOGFILE, 'r+') as f:
+                    with open(INCIDENTS_LOGFILE, 'r+') as f:
                         for line in f:
                             if log in line:
                                 break
@@ -162,7 +181,7 @@ def processPkt(pkt):
 		if len(packets)%100==0:
 			createGraph(packets)
 		if len(packets)>=1000:
-			packets.pop(0)
+			del packets[:100]
 				
 		packets.append(pkt)
 		# print(len(packets))
@@ -176,26 +195,26 @@ def processPkt(pkt):
 				protoc = res[-1].name
 			if(protoc == 'TCP'):
 				if(len(Previous_TCP)>=1000):
-					Previous_TCP.pop(0)
+					del Previous_TCP[:100]
 					
 				Previous_TCP.append([datetime.datetime.now(), pkt])
 				if i%10==0:
 					t = TCP_Attacks()
 			elif(protoc == 'UDP'):
 				if(len(Previous_UDP)>=1000):
-					Previous_UDP.pop(0)
+					del Previous_UDP[:100]
 				Previous_UDP.append([datetime.datetime.now(), pkt]) 
 			elif(protoc == 'DNS'):
 				if(len(Previous_DNS)>=1000):
-					Previous_DNS.pop(0)
+					del Previous_DNS[:100]
 				Previous_DNS.append([datetime.datetime.now(), pkt]) 
 			elif(protoc == 'DHCP'):
 				if(len(Previous_UDP)>=1000):
-					Previous_DHCP.pop(0)
+					del Previous_DHCP[:100]
 				Previous_DHCP.append([datetime.datetime.now(), pkt])    
 			else:
 				if(len(Other)>=1000):
-					Other.pop(0)
+					del Other[:100]
 				Other.append([datetime.datetime.now(), pkt])
 			# print(datetime.datetime.now(), pkt[IP].src, pkt[IP].dst, protoc, pkt.summary())
 			process_row({'Time_Stamp': datetime.datetime.now(), 'Source_IP': pkt[IP].src, 'Destination_IP': pkt[IP].dst, 'protocol':protoc}, key="df")

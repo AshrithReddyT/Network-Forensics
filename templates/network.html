@@ -33,7 +33,7 @@
      /* margin: 0 auto; */
      }
      #canvas-wrap { position:relative } /* Make this a positioned parent */
-    #overlay { position:absolute; top:20px; left: 20px; right: 20px ; bottom:20px;}
+    #overlay { position:absolute; top:20px; left:30px; }
 </style>
 </head>
 <body>
@@ -50,7 +50,7 @@
                 <a href="#Prod3">Prod 3</a>
             </div>
         </div>
-        <a href="#Portfolio">Events</a>
+        <a href="{{ url_for('events') }}">Events</a>
         <a href="{{ url_for('incidents') }}">Incidents</a>
         <a href="#Content">About</a>
         <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
@@ -209,7 +209,7 @@
                 .attr("fill", "none")
                 .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return d.size * 10})
                 .attr("opacity", 0.7)
-                .style("stroke", function(d) { if(d.value==0){return "red"} else{return "green"} });
+                .style("stroke", function(d) { if(d.value==0){return "green"} else{return "red"} });
 
                 var lines = d3.selectAll('path');
 
