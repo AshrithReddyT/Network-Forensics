@@ -33,10 +33,13 @@
      /* margin: 0 auto; */
      }
      #canvas-wrap { position:relative } /* Make this a positioned parent */
-    #overlay { position:absolute; top:20px; left:30px; }
+    #overlay { position:absolute; top:20px; right:30px; left:30px;}
 </style>
 </head>
 <body>
+
+    
+
     <div class="navbar" id= "nav">
         <a href="{{ url_for('index') }}">NetVis</a>
         <div class="dropdown">
@@ -62,12 +65,22 @@
         <canvas id="sky" style="width:50%, height:100%">
             
         </canvas>
+
+
         <div id="overlay" style="margin-left: 50%">
-            <div class="svg-div" style="width:600px">
+            <div class="svg-div" style="width:700px">
                 <center>
                 </center>
             </div>
         </div>
+
+        <div id="overlay" style = "margin-right: 50%">
+            <centerl>
+	            <table id="myTable">
+				</table>
+            </centerl>
+        </div>
+
     </div>
        
     
@@ -152,7 +165,31 @@
                 });                       
             }, 5000);   
     </script>
-    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+        <script>
+			d3.csv("{{ url_for('static', filename='nmap.csv') }}", function(data) {
+
+				var head = ['IP Address','FQDN','OS','Port','Protocol','Service','Name','Version'];
+				var table = document.getElementById("myTable");
+				var header = table.createTHead();
+		    	var row = header.insertRow(0); 
+				for(var i=0;i<8;i++){
+					var cell = row.insertCell();
+					cell.innerHTML = head[i];
+				}
+			
+			    for (var i = 0; i < data.length; i++) {
+			    	if(data[i]["IP Address"] == "{{ node }}"){
+			    		var row = table.insertRow();
+			    		for(var j=0;j<8;j++){
+							var cell = row.insertCell();
+							cell.innerHTML = data[i][head[j]];
+						}
+			    	}
+			    }
+			});
+		</script>
+
     <script>
         var width = 600,
             height = 625
