@@ -74,7 +74,6 @@ def createGraph(pkts):
 
     nx.draw(G,pos,edge_color='black',width=1,linewidths=1, node_size=1000, alpha=0.9, labels={node:node for node in G.nodes()})
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels,font_color='red')
-
     if set(comm) == set(prev_comm) and set(devices.keys()) == set(prev_devices.keys()):
         return
     

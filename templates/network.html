@@ -62,59 +62,64 @@
         <canvas id="sky">
             
         </canvas>
-        <div id="overlay">
-            <div class="svg-div">
-                <center>
-                </center>
+
+        <div id="overlay" style="margin-left: 20% ;">
+                <div class="svg-div">
+                        <center>
+                        </center>
+                </div>
             </div>
-        </div>
-        <table>
-            <th>
-                <tr>
-                    <td>
-                        Nodes
-                    </td>
-                    <td>
-                        Links
-                    </td>
-                    <td>
-                        Unsafe Links
-                    </td>
-                    <td>
-                        Safe Links
-                    </td>
-                    <td>
-                        Unsafe Nodes
-                    </td>
-                    <td>
-                        Safe Nodes
-                    </td>
-                </tr>
-            </th>
-            <tbody>
-                <tr>
-                    <td>
-                        {{ nodes }}
-                    </td>
-                    <td>
-                        {{ links }}
-                    </td>
-                    <td>
-                        {{ unsafe_nodes }}
-                    </td>
-                    <td>
-                        {{ unsafe_links }}
-                    </td>
-                    <td>
-                        {{ safe_links }}
-                    </td>
-                    <td>
-                        {{ safe_nodes }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        
+    
+            <div id="overlay" style = "margin-left: 70%">
+                <centerl>
+                        <table border = 1>
+                                <th>
+                                    <tr>
+                                        <td>
+                                            Nodes
+                                        </td>
+                                        <td>
+                                            Links
+                                        </td>
+                                        <td>
+                                            Unsafe Links
+                                        </td>
+                                        <td>
+                                            Safe Links
+                                        </td>
+                                        <td>
+                                            Unsafe Nodes
+                                        </td>
+                                        <td>
+                                            Safe Nodes
+                                        </td>
+                                    </tr>
+                                </th>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            {{ nodes }}
+                                        </td>
+                                        <td>
+                                            {{ links }}
+                                        </td>
+                                        <td>
+                                            {{ unsafe_nodes }}
+                                        </td>
+                                        <td>
+                                            {{ unsafe_links }}
+                                        </td>
+                                        <td>
+                                            {{ safe_links }}
+                                        </td>
+                                        <td>
+                                            {{ safe_nodes }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                </centerl>
+            </div>
     </div>
        
     
@@ -201,8 +206,8 @@
     </script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
-        var width = 1400,
-            height = 625
+        var width = $(window).width() / 1.5; 
+            height = $(window).height() / 1.2;
 
         var svg = d3.select("center").append("svg")
             .attr("width", width)
