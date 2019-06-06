@@ -106,7 +106,7 @@ def process_row(d, key, max_len=100, _cache=CACHE):
 def store_and_clear(lst, key):
     global flag
     df = pd.DataFrame(lst)
-    with open(EVENTS_LOGFILE, "r+") as f:
+    with open(EVENTS_LOGFILE, "a") as f:
         for index, row in df.iterrows():
             # print(row['c1'], row['c2'])'
             f.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+"\n")
