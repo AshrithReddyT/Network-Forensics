@@ -74,6 +74,7 @@ def createGraph(pkts):
 
     nx.draw(G,pos,edge_color='black',width=1,linewidths=1, node_size=1000, alpha=0.9, labels={node:node for node in G.nodes()})
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels,font_color='red')
+
     if set(comm) == set(prev_comm) and set(devices.keys()) == set(prev_devices.keys()):
         return
     
@@ -88,6 +89,13 @@ def createGraph(pkts):
     links = [{'source': all_nodes.index(u[0]), 'target': all_nodes.index(u[1]), 'value':malicious[u[0]+":"+u[1]], 'size':comm_count[u[0]+":"+u[1]]/max}
             for u in G.edges()]
     with open('static/graph.json', 'w') as f:
+        json.dump({'nodes': nodes, 'links': links}, f, indent=4,)
+    
+    nodes = [{'id': str(i), 'group':int(random.randint(0,100))%2}
+            for i in G.nodes()]
+    links = [{'source': u[0], 'target': u[1], 'value':malicious[u[0]+":"+u[1]], 'size':(comm_count[u[0]+":"+u[1]]/max)}
+            for u in G.edges()]
+    with open('static/graph1.json', 'w') as f:
         json.dump({'nodes': nodes, 'links': links}, f, indent=4,)
     prev_comm = comm
     prev_devices = devices
@@ -105,7 +113,7 @@ def process_row(d, key, max_len=100, _cache=CACHE):
 def store_and_clear(lst, key):
     global flag
     df = pd.DataFrame(lst)
-    with open(EVENTS_LOGFILE, "a") as f:
+    with open(EVENTS_LOGFILE, "r+") as f:
         for index, row in df.iterrows():
             # print(row['c1'], row['c2'])'
             f.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+"\n")
@@ -152,7 +160,7 @@ class TCP_Attacks():
             if(last_packet[ip] != first_packet[ip]):
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
                     ips = ip.split(':')
-                    log = ips[0]+","+ips[1]+",SYN FLOODING(Direct)\n"
+                    log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'r+') as f:
                         for line in f:
                             if log in line:
