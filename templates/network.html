@@ -6,10 +6,10 @@
         <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/main.css') }}>
 <style>
     body {
-        background: #0d1115;
-        background: -moz-linear-gradient(top, #0d1115 0%, #19232c 100%);
-        background: -webkit-linear-gradient(top, #0d1115 0%, #19232c 100%);
-        background: linear-gradient(to bottom, #0d1115 0%, #19232c 100%);
+        background: #000000;
+        /* background: -moz-linear-gradient(top, #000000 0%, #000 100%);
+        background: -webkit-linear-gradient(top, #000000 0%, #000 100%);
+        background: linear-gradient(to bottom, #000 0%, #000 100%); */
         margin: 0;
         padding: 0;
     }
@@ -34,6 +34,37 @@
      }
      #canvas-wrap { position:relative } /* Make this a positioned parent */
     #overlay { position:absolute; top:20px; left:30px; }
+    .toplcorner{
+    position:absolute;
+    top:10%;
+    left:1%;
+    background: #000;
+    }
+    .lcenter{
+    position:absolute;
+    top:30%;
+    left:1%;
+    }
+    .lbottom{
+    position:absolute;
+    top:50%;
+    left:1%;
+    }
+    .toprcorner{
+    position:absolute;
+    top:10%;
+    left:85%;
+    }
+    .rcenter{
+    position:absolute;
+    top:30%;
+    left:85%;
+    }
+    .rbottom{
+    position:absolute;
+    top:50%;
+    left:85%;
+    }
 </style>
 </head>
 <body>
@@ -62,15 +93,101 @@
         <canvas id="sky">
             
         </canvas>
-
-        <div id="overlay" style="margin-left: 20% ;">
+        <div class="toplcorner"> 
+                <table>
+                        <td style="font-size: 1cm;font: bolder; color:#32CD32; ">
+                            {{ safe_nodes }} -
+                        </td>
+                        <td style="font-size: .5cm;font: bolder; color:#32CD32;">
+                        Safe Nodes
+                        </td> </table>
+            </div>
+        <div class="lcenter"> 
+                <table>
+                    <td style="font-size: 1cm; font: bolder; color: #f00;">
+                            {{ unsafe_nodes }} -
+                    </td>
+                    <td style="font-size: .5cm; font: bolder; color: #f00;">
+                       Unsafe Nodes
+                    </td> 
+                </table>
+        </div>
+        <div class="lbottom"> 
+                <table>
+                <td style="font-size: 1cm;font: bolder; color: #fff;">
+                    {{ nodes }} -
+                </td>
+                <td style="font-size: .5cm;font: bolder; color: #fff;">
+                    Nodes
+                </td></table>
+            </div>
+        
+            <div class="toprcorner"> 
+                    <table>
+                    <td style="font-size: 1cm; font-size: 1cm; font: bolder; color:#32CD32; ">
+                        {{ safe_links }} -
+                    </td>
+                    <td style="font-size: .5cm; font: bolder; color:#32CD32; ">
+                        Safe Links
+                    </td> 
+                    </table>
+            </div>
+            <div class="rcenter"> 
+                    <table>
+                        <td style=" font-size: 1cm; font: bolder; color: #f00;">
+                                {{ unsafe_links }} -
+                        </td>
+                        <td style="font-size: .5cm; font: bolder; color:#f00; ">
+                           Unsafe Links
+                        </td> 
+                    </table>
+            </div>
+            <div class="rbottom"> 
+                    <table>
+                    <td style="font-size: 1cm; font: bolder; color: #fff;">
+                        {{ links }} -
+                    </td>
+                    <td style="font-size: .5cm; font: bolder; color: #fff;">
+                        Links
+                    </td></table>
+                </div>
+       <!--  <div class="topcorner">
+            <!-- <p style="font-size: 1cm">  {{ nodes }} </p>  <p>Nodes </p> 
+            <table>
+                <tr>
+                <td style="font-size: .8cm; ">
+                    {{ nodes }}
+                </td>
+                <td>
+                   - Nodes
+                </td> 
+                </tr>
+                <tr>
+                <td style="font-size: .8cm; ">
+                    {{ unsafe_nodes }}
+                </td>
+                <td>
+                   - Unsafe Nodes
+                </td>
+                </tr>
+                <tr>
+                <td style="font-size: .8cm; ">
+                    {{ safe_nodes }}
+                </td>
+                <td>
+                  - Safe Nodes
+                </td>
+                </tr>
+            </table>
+        </div> -->
+        <div id="overlay" style="margin-left: 10% ;">
                 <div class="svg-div">
                         <center>
                         </center>
                 </div>
             </div>
     
-            <div id="overlay" style = "margin-left: 70%">
+            <!-- <div id="overlay" style = "margin-left: 70%">
                 <centerl>
                         <table border = 1>
                                 <th>
@@ -119,7 +236,7 @@
                                 </tbody>
                             </table>
                 </centerl>
-            </div>
+            </div> -->
     </div>
        
     

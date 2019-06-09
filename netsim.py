@@ -10,6 +10,15 @@ from collections import Counter
 import os
 import time
 # from nmap_scan import *
+import os
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+
+if not os.path.exists("logs/events"):
+    os.makedirs("logs/events")
+
+if not os.path.exists("logs/incidents"):
+    os.makedirs("logs/incidents")
 
 INCIDENTS_LOGFILE = "logs/incidents/incidents-"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
 EVENTS_LOGFILE = "logs/events/events-"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
