@@ -24,7 +24,8 @@ INCIDENTS_LOGFILE = "logs/incidents/incidents-"+str(datetime.datetime.now().date
 EVENTS_LOGFILE = "logs/events/events-"+str(datetime.datetime.now().date())+'_'+str(datetime.datetime.now().timestamp())+'.log'
 open(INCIDENTS_LOGFILE,"w").close()
 open(EVENTS_LOGFILE,"w").close()
-
+with open("static/data.log", "w") as f:
+    f.write("timestamp,src,dst,protoc,len\n")
 
 # print(INCIDENTS_LOGFILE)
 prev_comm = []
@@ -122,10 +123,11 @@ def process_row(d, key, max_len=100, _cache=CACHE):
 def store_and_clear(lst, key):
     global flag
     df = pd.DataFrame(lst)
-    with open(EVENTS_LOGFILE, "r+") as f:
+    with open(EVENTS_LOGFILE, "a") as f , open("static/data.log", "a") as f1:
         for index, row in df.iterrows():
             # print(row['c1'], row['c2'])'
-            f.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+"\n")
+            f.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+","+str(row['length'])+"\n")
+            f1.write(str(row['Time_Stamp'])+","+row['Source_IP']+","+row['Destination_IP']+","+row['protocol']+","+str(row['length'])+"\n")
     lst.clear()
 
 Previous_TCP = []
@@ -233,7 +235,7 @@ def processPkt(pkt):
 					del Other[:100]
 				Other.append([datetime.datetime.now(), pkt])
 			# print(datetime.datetime.now(), pkt[IP].src, pkt[IP].dst, protoc, pkt.summary())
-			process_row({'Time_Stamp': datetime.datetime.now(), 'Source_IP': pkt[IP].src, 'Destination_IP': pkt[IP].dst, 'protocol':protoc}, key="df")
+			process_row({'Time_Stamp': datetime.datetime.now(), 'Source_IP': pkt[IP].src, 'Destination_IP': pkt[IP].dst, 'protocol':protoc, 'length': len(pkt)}, key="df")
 	except KeyboardInterrupt:
 		for k, lst in CACHE.items(): 
 			store_and_clear(lst, k)
