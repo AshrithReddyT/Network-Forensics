@@ -29,6 +29,10 @@ def viewnode():
 def three():
     return render_template('index.html')
 
+@app.route('/lineCharts')
+def lineCharts():
+    return render_template('lineCharts.html')
+
 @app.route('/pie')
 def pie():
     list_of_files = glob.glob('./logs/incidents/*.log') 
@@ -39,7 +43,7 @@ def pie():
     with open(latest_file,"r") as f:
         line = f.readline()
         while line:
-            incidents_lines.append(line.split(",")[-1][:-1])
+            incidents_lines.append(line.split(",")[-2])
             line = f.readline()
     for line in incidents_lines:
         if line in malicious_events.keys():
