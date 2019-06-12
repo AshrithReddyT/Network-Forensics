@@ -43,7 +43,7 @@ def pie():
     with open(latest_file,"r") as f:
         line = f.readline()
         while line:
-            incidents_lines.append(line.split(",")[-2])
+            incidents_lines.append(line.split(",")[-1][:-1])
             line = f.readline()
     for line in incidents_lines:
         if line in malicious_events.keys():
@@ -58,7 +58,7 @@ def pie():
     with open(latest_file,"r") as f:
         line = f.readline()
         while line:
-            events_lines.append(line.split(",")[-1][:-1])
+            events_lines.append(line.split(",")[-2])
             line = f.readline()
     # lines = lines[::-1]
     for line in events_lines:
