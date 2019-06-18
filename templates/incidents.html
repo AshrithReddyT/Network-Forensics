@@ -39,9 +39,8 @@
 
         /*Responsive table*/
         table {
-        width: 1400px;
+        width: 100%;
         border-collapse: collapse;
-        background: #34495e;
         color: #f3f3f3;
         }
         thead, tbody { display: block; }
@@ -60,13 +59,7 @@
         text-align: left;
         }
 
-        /* Zebra striping */
-        tr:nth-of-type(odd) {
-        background: #16a085;
-        }
-
         th {
-        background: #2c3e50;
         font-weight: bold;
         }
 
@@ -74,7 +67,6 @@
         text-decoration: none;
         color: #fff;
         }
-
     </style>
 </head>
 <body>
@@ -86,10 +78,10 @@
                 <i class="fa fa-angle-double-up"></i>
             </a>
             <div class="drop-content">
-                <a href="#Prod1">Drop 1</a>
-                <a href="#Prod2">Prod 2</a>
-                <a href="#Prod3">Prod 3</a>
-            </div>
+                    <a href="#Prod1">Metrics</a>
+                    <a href="{{ url_for('pie') }}">Distribution</a>
+                    <a href="{{ url_for('lineCharts') }}">Flow</a>
+                </div>
         </div>
         <a href="{{ url_for('events') }}">Events</a>
         <a href="{{ url_for('incidents') }}">incidents</a>
@@ -105,15 +97,14 @@
         </canvas>
         <div id="overlay" style="align-content: center;width: 95%; height: 100%, margin-top:15%">
                 <center>
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>Attacker IP</th>
-                                <th>Source IP</th>
-                                <th>Attack</th>
-                            </tr>
-                            </thead>
+                        <table border="1">
                             <tbody>
+                                <tr>
+                                    <td><b>Attacker IP</b></td>
+                                    <td><b>Source IP</b></td>
+                                    <td><b>Attack Type</b></td>
+                                    <td><b>Protocol type</b></td>
+                                </tr>
                                 {% for line in data %}
                                 <tr>
                                     {% for i in line %}

@@ -4,6 +4,39 @@
         <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/main.css') }}>
+        <style> /* set the CSS */
+
+                .line {
+                  fill: none;
+                  stroke: rgb(224, 247, 22);
+                  stroke-width: 2px;
+                }
+        
+                .axisRed path{
+                stroke: rgb(231, 235, 9);
+                }
+        
+                .axisRed text{
+                fill: rgb(248, 242, 242);
+                }  
+                 .column {
+        float: left;
+        width: 33%;
+        height: 50%;
+        margin-bottom: 5%;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+        content: "";
+        display: table;
+        clear: both;
+        }
+        .legend rect {
+        fill:white;
+        stroke:black;
+        opacity:0.8;}
+                </style>
 <style>
     body {
         background: #000000;
@@ -38,7 +71,7 @@
     position:absolute;
     top:10%;
     left:1%;
-    background: #000;
+    /* background: #000; */
     }
     .lcenter{
     position:absolute;
@@ -65,6 +98,36 @@
     top:50%;
     left:85%;
     }
+    .lbottomt{
+    position:absolute;
+    top:85%;
+    left:0%;
+    }
+    .lbottomu{
+    position:absolute;
+    top:85%;
+    left:15%;
+    }
+    .lbottomm{
+    position:absolute;
+    top:85%;
+    left:30%;
+    }
+    .lbottomc{
+    position:absolute;
+    top:85%;
+    left:45%;
+    }
+    .lbottomi{
+    position:absolute;
+    top:85%;
+    left:60%;
+    }
+    .lbottomf{
+    position:absolute;
+    top:85%;
+    left:75%;
+    }
 </style>
 </head>
 <body>
@@ -76,9 +139,9 @@
                 <i class="fa fa-angle-double-up"></i>
             </a>
             <div class="drop-content">
-                <a href="#Prod1">Drop 1</a>
-                <a href="#Prod2">Prod 2</a>
-                <a href="#Prod3">Prod 3</a>
+                <a href="#Prod1">Metrics</a>
+                <a href="{{ url_for('pie') }}">Distribution</a>
+                <a href="{{ url_for('lineCharts') }}">Flow</a>
             </div>
         </div>
         <a href="{{ url_for('events') }}">Events</a>
@@ -238,7 +301,7 @@
                 </centerl>
             </div> -->
     </div>
-       
+     
     
     <script>
     window.onload = function() {
@@ -544,4 +607,434 @@
 
         });
     </script>
+    <div style="background: gray">
+    <div class="lbottomt"><center id="TCP"></center></div>
+    <div class="lbottomu"><center id="UDP"></center></div>
+    <div class="lbottomm"><center id="ModbusTCP"></center></div>
+    <div class="lbottomc"><center id="CIP"></center></div>
+    <div class="lbottomi"><center id="IEC104"></center></div>
+    <div class="lbottomf"><center id="FTP"></center></div>
+    </div>
+
+<!-- load the d3.js library -->    	
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+<script>
+
+// set the dimensions and margins of the graph
+var margin = {top: 20, right: 20, bottom: 50, left: 70},
+      width = 200 - margin.left - margin.right,
+      height = 100 - margin.top - margin.bottom ;
+  
+  // parse the date / time
+  var parseMilliseconds = d3.utcParse("%Y-%m-%d %H:%M:%S.%L"),
+      stripNanoseconds = function(s) { return s.slice(0, -4); },
+      parseDate = function(s) { return parseMilliseconds(stripNanoseconds(s)); };
+  // var parseDate = d3.utcParse("%Y-%m-%d %H:%M:%S.%L%L");
+  
+  // set the ranges
+  var x = d3.scaleTime().rangeRound([0, width]);
+  var y = d3.scaleLinear().rangeRound([height, 0]);
+  
+  // define the line
+  var valueline = d3.line()
+      .x(function(d) { return x(d[0]); })
+      .y(function(d) { return y(d[1]); });
+  
+  // append the svg obgect to the body of the page
+  // appends a 'group' element to 'svg'
+  // moves the 'group' element to the top left margin
+  var svg1 = d3.select("#TCP").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("class", "axisRed")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+  
+  
+  // Get the data
+  d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+    if (error) throw error;
+    // 
+    // // format the data
+    
+    data.forEach(function(d) {
+      if(d.protoc=="TCP")
+        d.len = d.len;
+      else
+        d.len = "0";
+    });
+    data=data.map(function(d1) {
+          return[
+              parseDate(d1["timestamp"]),
+              d1["len"]
+          ];
+        });
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d[0]; }));
+    y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+    
+    // Add the valueline path.
+    svg1.append("path")
+        .data([data])
+        .attr("class", "line")
+        .attr("d", valueline);
+    
+    svg1.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("TCP");
+    // Add the X Axis
+    // svg.append("g")
+        // .attr("transform", "translate(0," + height + ")")
+        // .call(d3.axisBottom(x));
+    
+    // Add the Y Axis
+    // svg.append("g")
+        // .call(d3.axisLeft(y));
+    
+    svg1.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+    
+  
+  });
+  </script>
+  <!-- <b>TCP</b> -->
+  <script>
+
+  
+  // append the svg obgect to the body of the page
+  // appends a 'group' element to 'svg'
+  // moves the 'group' element to the top left margin
+  var svg2 = d3.select("#UDP").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("class", "axisRed")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+  
+  
+  // Get the data
+  d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+    if (error) throw error;
+    // 
+    // // format the data
+    
+    data.forEach(function(d) {
+      if(d.protoc=="UDP")
+        d.len = d.len;
+      else
+        d.len = "0";
+    });
+    data=data.map(function(d1) {
+          return[
+              parseDate(d1["timestamp"]),
+              d1["len"]
+          ];
+        });
+    // Scale the range of the data
+    x.domain(d3.extent(data, function(d) { return d[0]; }));
+    y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+    
+    // Add the valueline path.
+    svg2.append("path")
+        .data([data])
+        .attr("class", "line")
+        .attr("d", valueline);
+  
+    svg2.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("UDP");
+    // // Add the X Axis
+    // svg2.append("g")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x));
+    
+    // // Add the Y Axis
+    // svg2.append("g")
+    //     .call(d3.axisLeft(y));
+    
+    svg2.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+  
+  });
+    
+    // append the svg obgect to the body of the page
+    // appends a 'group' element to 'svg'
+    // moves the 'group' element to the top left margin
+    var svg3 = d3.select("#ModbusTCP").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("class", "axisRed")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+    
+    
+    // Get the data
+    d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+      if (error) throw error;
+      // 
+      // // format the data
+      
+      data.forEach(function(d) {
+        if(d.protoc=="ModbusTCP")
+          d.len = d.len;
+        else
+          d.len = "0";
+      });
+      data=data.map(function(d1) {
+            return[
+                parseDate(d1["timestamp"]),
+                d1["len"]
+            ];
+          });
+      // console.log(d3.max(data, function(d) { return Number(d[1]); }));
+      // Scale the range of the data
+      x.domain(d3.extent(data, function(d) { return d[0]; }));
+      y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+      // Add the valueline path.
+      svg3.append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline);
+    
+      // Add the X Axis
+    svg3.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("ModbusTCP");
+    // Add the X Axis
+    // svg3.append("g")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x));
+    
+    // // Add the Y Axis
+    // svg3.append("g")
+    //     .call(d3.axisLeft(y));
+    
+    svg3.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+    
+    });
+    
+      
+      // append the svg obgect to the body of the page
+      // appends a 'group' element to 'svg'
+      // moves the 'group' element to the top left margin
+
+
+      var svg4 = d3.select("#CIP").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("class", "axisRed")
+          .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+      
+      
+      // Get the data
+      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+        if (error) throw error;
+        // 
+        // // format the data
+        
+        data.forEach(function(d) {
+          if(d.protoc=="CIP")
+            d.len = d.len;
+          else
+            d.len = "0";
+        });
+        data=data.map(function(d1) {
+              return[
+                  parseDate(d1["timestamp"]),
+                  d1["len"]
+              ];
+            });
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d[0]; }));
+        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+        
+        // Add the valueline path.
+        svg4.append("path")
+            .data([data])
+            .attr("class", "line")
+            .attr("d", valueline);
+      
+        // Add the X Axis
+    svg4.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("CIP");
+    // Add the X Axis
+    // svg4.append("g")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x));
+    
+    // // Add the Y Axis
+    // svg4.append("g")
+    //     .call(d3.axisLeft(y));
+    
+    svg4.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+      
+      });
+      
+      var svg5 = d3.select("#IEC104").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("class", "axisRed")
+          .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+      
+      
+      // Get the data
+      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+        if (error) throw error;
+        // 
+        // // format the data
+        
+        data.forEach(function(d) {
+          if(d.protoc=="IEC104")
+            d.len = d.len;
+          else
+            d.len = "0";
+        });
+        data=data.map(function(d1) {
+              return[
+                  parseDate(d1["timestamp"]),
+                  d1["len"]
+              ];
+            });
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d[0]; }));
+        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+        
+        // Add the valueline path.
+        svg5.append("path")
+            .data([data])
+            .attr("class", "line")
+            .attr("d", valueline);
+      
+        // Add the X Axis
+    svg5.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("IEC104");
+    // Add the X Axis
+    // svg5.append("g")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x));
+    
+    // // Add the Y Axis
+    // svg5.append("g")
+    //     .call(d3.axisLeft(y));
+    
+    svg5.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+      
+      });
+
+      var svg6 = d3.select("#FTP").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("class", "axisRed")
+          .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+      
+      
+      // Get the data
+      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
+        if (error) throw error;
+        // 
+        // // format the data
+        
+        data.forEach(function(d) {
+          if(d.protoc=="FTP")
+            d.len = d.len;
+          else
+            d.len = "0";
+        });
+        data=data.map(function(d1) {
+              return[
+                  parseDate(d1["timestamp"]),
+                  d1["len"]
+              ];
+            });
+        // Scale the range of the data
+        x.domain(d3.extent(data, function(d) { return d[0]; }));
+        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
+        
+        // Add the valueline path.
+        svg6.append("path")
+            .data([data])
+            .attr("class", "line")
+            .attr("d", valueline);
+      
+        // Add the X Axis
+    svg6.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("FTP");
+    // Add the X Axis
+    // svg6.append("g")
+    //     .attr("transform", "translate(0," + height + ")")
+    //     .call(d3.axisBottom(x));
+    
+    // // Add the Y Axis
+    // svg6.append("g")
+    //     .call(d3.axisLeft(y));
+    
+    svg6.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+    //   .text("Packet Size");  
+      
+      });
+      
+      </script>
 </body>

@@ -43,9 +43,9 @@
                 <i class="fa fa-angle-double-up"></i>
             </a>
             <div class="drop-content">
-                <a href="#Prod1">Drop 1</a>
-                <a href="#Prod2">Prod 2</a>
-                <a href="#Prod3">Prod 3</a>
+                <a href="#Prod1">Metrics</a>
+                <a href="{{ url_for('pie') }}">Distribution</a>
+                <a href="{{ url_for('lineCharts') }}">Flow</a>
             </div>
         </div>
         <a href="{{ url_for('events') }}">Events</a>
