@@ -159,90 +159,61 @@
         <div class="toplcorner"> 
                 <table>
                         <td style="font-size: 1cm;font: bolder; color:#32CD32; ">
-                            {{ safe_nodes }} -
+                            <div id="s_n"></div>
                         </td>
                         <td style="font-size: .5cm;font: bolder; color:#32CD32;">
-                        Safe Nodes
+                        - Safe Nodes
                         </td> </table>
             </div>
         <div class="lcenter"> 
                 <table>
                     <td style="font-size: 1cm; font: bolder; color: #f00;">
-                            {{ unsafe_nodes }} -
+                            <div id="u_n"></div>
                     </td>
                     <td style="font-size: .5cm; font: bolder; color: #f00;">
-                       Unsafe Nodes
+                       - Unsafe Nodes
                     </td> 
                 </table>
         </div>
         <div class="lbottom"> 
                 <table>
                 <td style="font-size: 1cm;font: bolder; color: #fff;">
-                    {{ nodes }} -
+                        <div id="n"></div>
                 </td>
                 <td style="font-size: .5cm;font: bolder; color: #fff;">
-                    Nodes
+                    - Nodes
                 </td></table>
             </div>
         
             <div class="toprcorner"> 
                     <table>
                     <td style="font-size: 1cm; font-size: 1cm; font: bolder; color:#32CD32; ">
-                        {{ safe_links }} -
+                            <div id="s_l"></div>
                     </td>
                     <td style="font-size: .5cm; font: bolder; color:#32CD32; ">
-                        Safe Links
+                        - Safe Links
                     </td> 
                     </table>
             </div>
             <div class="rcenter"> 
                     <table>
                         <td style=" font-size: 1cm; font: bolder; color: #f00;">
-                                {{ unsafe_links }} -
+                                <div id="u_l"></div>
                         </td>
                         <td style="font-size: .5cm; font: bolder; color:#f00; ">
-                           Unsafe Links
+                           - Unsafe Links
                         </td> 
                     </table>
             </div>
             <div class="rbottom"> 
                     <table>
                     <td style="font-size: 1cm; font: bolder; color: #fff;">
-                        {{ links }} -
+                            <div id="l"></div>
                     </td>
                     <td style="font-size: .5cm; font: bolder; color: #fff;">
-                        Links
+                        - Links
                     </td></table>
                 </div>
-       <!--  <div class="topcorner">
-            <!-- <p style="font-size: 1cm">  {{ nodes }} </p>  <p>Nodes </p> 
-            <table>
-                <tr>
-                <td style="font-size: .8cm; ">
-                    {{ nodes }}
-                </td>
-                <td>
-                   - Nodes
-                </td> 
-                </tr>
-                <tr>
-                <td style="font-size: .8cm; ">
-                    {{ unsafe_nodes }}
-                </td>
-                <td>
-                   - Unsafe Nodes
-                </td>
-                </tr>
-                <tr>
-                <td style="font-size: .8cm; ">
-                    {{ safe_nodes }}
-                </td>
-                <td>
-                  - Safe Nodes
-                </td>
-                </tr>
-            </table>
-        </div> -->
         <div id="overlay" style="margin-left: 10% ;">
                 <div class="svg-div">
                         <center>
@@ -250,59 +221,8 @@
                 </div>
             </div>
     
-            <!-- <div id="overlay" style = "margin-left: 70%">
-                <centerl>
-                        <table border = 1>
-                                <th>
-                                    <tr>
-                                        <td>
-                                            Nodes
-                                        </td>
-                                        <td>
-                                            Links
-                                        </td>
-                                        <td>
-                                            Unsafe Links
-                                        </td>
-                                        <td>
-                                            Safe Links
-                                        </td>
-                                        <td>
-                                            Unsafe Nodes
-                                        </td>
-                                        <td>
-                                            Safe Nodes
-                                        </td>
-                                    </tr>
-                                </th>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            {{ nodes }}
-                                        </td>
-                                        <td>
-                                            {{ links }}
-                                        </td>
-                                        <td>
-                                            {{ unsafe_nodes }}
-                                        </td>
-                                        <td>
-                                            {{ unsafe_links }}
-                                        </td>
-                                        <td>
-                                            {{ safe_links }}
-                                        </td>
-                                        <td>
-                                            {{ safe_nodes }}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                </centerl>
-            </div> -->
     </div>
-     
-    
+        
     <script>
     window.onload = function() {
         var canvas = document.getElementById("sky");
@@ -364,26 +284,7 @@
 
     </script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script>
-        $.ajaxSetup({beforeSend: function(xhr){
-        if (xhr.overrideMimeType)
-        {
-            xhr.overrideMimeType("application/json");
-        }
-        }
-        });
-        var previous = null;
-        var current = null;
-        setInterval(function() {
-            $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
-                current = JSON.stringify(json);            
-                if (previous && current && previous !== current) {
-                    location.reload();
-                }
-                previous = current;
-            });                       
-        }, 5000);   
-    </script>
+    
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
         var width = $(window).width() / 1.5; 
@@ -426,13 +327,36 @@
             d.fx = null;
             d.fy = null;
         } 
-        
-        d3.json("{{ url_for('static', filename='graph.json') }}", function (error, json) {
+        var fname = "{{ url_for('static', filename='graph.json') }}/?t="+ new Date
+        d3.json(fname, function (error, json) {
             if (error) throw error; 
             force
                 .nodes(json.nodes) 
                 .force("link").links(json.links)
-
+            
+            document.getElementById("l").innerHTML = json.links.length;
+            document.getElementById("n").innerHTML = json.nodes.length;
+            
+            csl = 0;
+            cusl = 0;
+            for(c=0;c<json.links.length;c++){
+                if(json.links[c].value==0)
+                    csl++;
+                else
+                    cusl++;
+            }
+            csn = 0;
+            cusn = 0;
+            for(c=0;c<json.nodes.length;c++){
+                if(json.nodes[c].group==0)
+                    cusn++;
+                else
+                    csn++;
+            }
+            document.getElementById("s_l").innerHTML = csl;
+            document.getElementById("s_n").innerHTML = csn;
+            document.getElementById("u_l").innerHTML = cusl;
+            document.getElementById("u_n").innerHTML = cusn;
             
             var link = g.selectAll(".link")
                 .data(json.links)
@@ -462,65 +386,7 @@
                 .on("end", dragended))
                 .on("click", function(d) {window.location = "http://127.0.0.1:8000/viewnode?node=" + d.name});  
                 
-                var tip;
-                node.on("mouseover", function(d){
-                    // d3.select(this).select("circle").transition()
-                    //     .duration(750)
-                    //     .attr("r", 25)
-                    //     .attr("depth", 100);
-                    d3.event.stopPropagation(); 
                 
-                    if (tip) tip.remove();
-                    
-                    tip  = svg.append("g")
-                    .attr("transform", "translate(" + d.x  + "," + d.y + ")");
-                    
-                    var rect = tip.append("rect")
-                    // .style("width", "400px")
-                    // .style("height", "120px")
-                    .style("fill", "green")
-                    // .style("fill", function(d) { if(d.group==0){return "red"} else{return "light-blue"} })
-                    .style("stroke", "steelblue");
-                    
-                    tip.append("text")
-                    .text("Name: " + d.name)
-                    .attr("dy", "1em")
-                    .attr("x", 5)
-                    .style("fill", "white");
-                    
-                    tip.append("text")
-                    .text("Info: " + d.group)
-                    .attr("dy", "2em")
-                    .attr("x", 5)
-                    .style("fill", "white");
-
-                    var con = json.links
-                    .filter(function(d1){
-                        return d1.source.name === d.name;
-                    })
-                    .map(function(d1){
-                        return d1.target.name;
-                    });
-                    
-                    // tip.append("text")
-                    // .text("Connected to: " + con.join(",\n"))
-                    // .attr("dy", "3em")
-                    // .attr("x", 5)
-                    // .style("fill", "white");
-                    
-                    var bbox = tip.node().getBBox();
-                    rect.attr("width", bbox.width+ 5)
-                        .attr("height", bbox.height+5)
-                    
-                });
-                node.on("mouseout", function(d){
-                    // d3.select(this).select("circle").transition()
-                    //     .duration(750)
-                    //     .attr("r", 10);
-                    d3.event.stopPropagation(); 
-                
-                    if (tip) tip.remove();
-                });
             
                 json.links.forEach(function(link){
 
@@ -1035,6 +901,28 @@ var margin = {top: 20, right: 20, bottom: 50, left: 70},
     //   .text("Packet Size");  
       
       });
-      
+      $.ajax({
+                cache: false,
+            });
+            $.ajaxSetup({beforeSend: function(xhr){
+            if (xhr.overrideMimeType)
+            {
+                xhr.overrideMimeType("application/json");
+            }
+            },  cache: false
+            });
+            var previous = null;
+            var current = null;
+            setInterval(function() {
+                $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
+                    current = JSON.stringify(json);
+                    console.log(previous==current);
+                    if (previous && current && previous !== current) {
+                        
+                        location.reload();
+                    }
+                    previous = current;
+                });                       
+            }, 5000); 
       </script>
 </body>
