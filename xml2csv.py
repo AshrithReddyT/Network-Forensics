@@ -48,27 +48,6 @@ class NMAP_XMLParser(object):
 
         return(fqdn)
 
-    def _get_OS(self,info):
-        '''Determine the OS by the greatest percentage in accuracy'''
-        os = str()
-        os_hash = dict()
-        percentage = list()
-
-        info_detail = info.getElementsByTagName("osmatch")
-
-        for os_detail in info_detail:
-            guessed_os = os_detail.getAttribute("name")
-            accuracy = os_detail.getAttribute("accuracy")
-            if(guessed_os and accuracy):
-                os_hash[float(accuracy)] = guessed_os
-
-        percentages = os_hash.keys()
-        if(percentages):
-            max_percent = max(percentages)
-            os = os_hash[max_percent]
-
-        return(os)
-
     def _get_iter_Port_Information(self,info):
         '''Fetch port and service information'''
         info_detail = info.getElementsByTagName("port")
@@ -92,18 +71,17 @@ class NMAP_XMLParser(object):
 
     def _parse_XML_details(self):
         '''Initiate parsing of nmap XML file and create CSV string object'''
-        csv_header = "IP Address,FQDN,OS,Port,Protocol,Service,Name,Version"
-        csv_format = '\n{0},"{1}","{2}",{3},{4},"{5}","{6}","{7}"'
+        csv_header = "IP Address,FQDN,Port,Protocol,Service,Name,Version"
+        csv_format = '\n{0},"{1}","{2}",{3},{4},"{5}","{6}"'
 
         # self._csv_string += csv_header
 
         for info in self._iter_hosts():
             ip =  self._get_IP_Address(info)
             fqdn = self._get_FQDN(info)
-            os = self._get_OS(info)
 
             for port,protocol,service,product,version in self._get_iter_Port_Information(info):
-                self._csv_string += csv_format.format(ip,fqdn,os,port,protocol,service,product,version)
+                self._csv_string += csv_format.format(ip,fqdn,port,protocol,service,product,version)
 
     def dumpCSV(self):
         '''Write CSV output file to disk'''
