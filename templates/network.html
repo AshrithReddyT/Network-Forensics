@@ -6,20 +6,7 @@
         <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/main.css') }}>
         <style> /* set the CSS */
 
-                .line {
-                  fill: none;
-                  stroke: rgb(224, 247, 22);
-                  stroke-width: 2px;
-                }
-        
-                .axisRed path{
-                stroke: rgb(231, 235, 9);
-                }
-        
-                .axisRed text{
-                fill: rgb(248, 242, 242);
-                }  
-                 .column {
+        .column {
         float: left;
         width: 33%;
         height: 50%;
@@ -36,8 +23,37 @@
         fill:white;
         stroke:black;
         opacity:0.8;}
-                </style>
-<style>
+
+  .axis {
+    font-family: sans-serif;
+    fill:  #ff0000;
+    font-size: 12px;
+  }
+  .line {
+    fill: none;
+    stroke: #f1c40f;
+    stroke-width: 3px;
+  }
+  .smoothline {
+    fill: none;
+    stroke:  #f1c40f;
+    stroke-width: 3px;
+  }
+  .area {
+    fill:  #f1c40f;
+    opacity: 0.5;
+  }
+  .circle {
+    stroke:  #f1c40f;
+    stroke-width: 3px;
+    fill: #FFF;
+  }
+  .grid {
+    stroke: #DDD;
+    stroke-width: 1px;
+    fill: none;
+  }
+
     body {
         background: #000000;
         /* background: -moz-linear-gradient(top, #000000 0%, #000 100%);
@@ -100,33 +116,33 @@
     }
     .lbottomt{
     position:absolute;
-    top:85%;
-    left:0%;
+    margin-top:40%;
+    margin-left:0%;
     }
     .lbottomu{
     position:absolute;
-    top:85%;
-    left:15%;
+    margin-top:40%;
+    margin-left:15%;
     }
     .lbottomm{
     position:absolute;
-    top:85%;
-    left:30%;
+    margin-top:40%;
+    margin-left:30%;
     }
     .lbottomc{
     position:absolute;
-    top:85%;
-    left:45%;
+    margin-top:40%;
+    margin-left:45%;
     }
     .lbottomi{
     position:absolute;
-    top:85%;
-    left:60%;
+    margin-top:40%;
+    margin-left:60%;
     }
     .lbottomf{
     position:absolute;
-    top:85%;
-    left:75%;
+    margin-top:40%;
+    margin-left:75%;
     }
 </style>
 </head>
@@ -473,434 +489,291 @@
 
         });
     </script>
-    <div style="background: gray">
-    <div class="lbottomt"><center id="TCP"></center></div>
-    <div class="lbottomu"><center id="UDP"></center></div>
-    <div class="lbottomm"><center id="ModbusTCP"></center></div>
-    <div class="lbottomc"><center id="CIP"></center></div>
-    <div class="lbottomi"><center id="IEC104"></center></div>
-    <div class="lbottomf"><center id="FTP"></center></div>
+
+    <div  id="overlay"  style="margin-top: 35%; margin-left: 10%"> 
+        <svg id="chart1" ><div style="position: absolute; margin-left:9%"><b style="font-color: #fff">TCP</b></div></svg>
+        <svg  id="chart2"><div style="position: absolute; margin-left:32%"><b style="font-color: #fff">Modbus</b></div></svg></svg>
+        <svg  id="chart3"><div style="position: absolute; margin-left:57%"><b style="font-color: #fff">IEC104</b></div></svg></svg>
+        <svg  id="chart4"><div style="position: absolute; margin-left:83%"><b style="font-color: #fff">CIP</b></div></svg></svg>
+    </div>
     </div>
 
-<!-- load the d3.js library -->    	
-<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+
+      <script src="http://d3js.org/d3.v4.min.js"></script>
+      <script>
+      // var margin = {top: 20, right: 20, bottom: 50, left: 70},
+      //     width = 350 - margin.left - margin.right,
+      //     height = 250 - margin.top - margin.bottom ;
+      var data = [];
+      var data_tcp = [];
+      var data_modbus = [];
+      var data_cip = [];
+      var data_iec = [];
+      var dataplot_tcp = [];
+      var dataplot_modbus = [];
+      var dataplot_iec = [];
+      var dataplot_cip = [];
+      var width = 200;
+      var height = 100;
+      var globalX = 0;
+      var duration = 5;
+      // var max = 500;
+      // var step = 10;
+      var chart = d3.select('#chart1')
+      .attr('width', width + 50)
+      .attr('height', height + 50);
+      // var x = d3.scaleLinear().domain([0, 500]).range([0, 500]);
+      // var y = d3.scaleLinear().domain([0, 500]).range([500, 0]);
+      var x = d3.scaleTime().rangeRound([0, width]);
+      var y = d3.scaleLinear().rangeRound([height, 0]);
+      // -----------------------------------
+      var line = d3.line()
+      .x(function(d){ return x(d.x); })
+      .y(function(d){ return y(d.y); });
+      var smoothLine = d3.line().curve(d3.curveCardinal)
+      .x(function(d){ return x(d.x); })
+      .y(function(d){ return y(d.y); });
+      // -----------------------------------
+      // Draw the axis
+      var xAxis = d3.axisBottom().scale(x);
+      var axisX = chart.append('g').attr('class', 'x axis')
+      .attr('transform', 'translate(0, 100)')
+      .call(xAxis);
+      // Draw the grid
+      // Append the holder for line chart and fill area
+      var path = chart.append('path');
+      var areaPath = chart.append('path');
+      
+      
+      var chart2 = d3.select('#chart2')
+      .attr('width', width + 50)
+      .attr('height', height + 50);
+      
+      var xAxis2 = d3.axisBottom().scale(x);
+      var axisX2 = chart2.append('g').attr('class', 'x axis')
+      .attr('transform', 'translate(0, 100)')
+      .call(xAxis2);
+      // Draw the grid
+      // Append the holder for line chart and fill area
+      var path2 = chart2.append('path');
+      var areaPath2 = chart2.append('path');
+      
+      
+      var chart3 = d3.select('#chart3')
+      .attr('width', width + 50)
+      .attr('height', height + 50);
+      
+      var xAxis3 = d3.axisBottom().scale(x);
+      var axisX3 = chart3.append('g').attr('class', 'x axis')
+      .attr('transform', 'translate(0, 100)')
+      .call(xAxis3);
+      // Draw the grid
+      // Append the holder for line chart and fill area
+      var path3 = chart3.append('path');
+      var areaPath3 = chart3.append('path');
+      
+      var chart4 = d3.select('#chart4')
+      .attr('width', width + 50)
+      .attr('height', height + 50);
+      
+      var xAxis4 = d3.axisBottom().scale(x);
+      var axisX4 = chart4.append('g').attr('class', 'x axis')
+      .attr('transform', 'translate(0, 100)')
+      .call(xAxis4);
+      // Draw the grid
+      // Append the holder for line chart and fill area
+      var path4 = chart4.append('path');
+      var areaPath4 = chart4.append('path');
+      
+      
+      
+      
+      
+      // Main loop
+      var parseMilliseconds = d3.utcParse("%Y-%m-%d %H:%M:%S.%L"),
+          stripNanoseconds = function(s) { return s.slice(0, -4); },
+          parseDate = function(s) { return parseMilliseconds(stripNanoseconds(s)); };
+      
+      var prev = null;
+      var curr = null;
+      function update(){
+        var fname = "{{ url_for('static', filename='data.log') }}/?t="+ new Date
+        d3.csv(fname, function(error, da) {
+        if (error) throw error;
+        curr = JSON.stringify(da);
+        // 
+        // console.log(prev===curr);
+        // // format the data
+        // var curr = $.data.toObjects(data);
+      
+        if (prev && curr && prev !== curr) {
+          da=da.map(function(d1) {
+              return[
+                  parseDate(d1["timestamp"]),
+                  d1["len"],
+                  d1["protoc"]
+              ];
+            });
+          for(i=0; i<da.length; i++){
+            var point = {
+                x: da[i][0],
+                y: da[i][1]
+              };
+            if(da[i][2]=="TCP"){
+              data_tcp.push(point);
+            }
+            else if(da[i][2]=="UDP"){
+              data_modbus.push(point);
+            }
+            else if(da[i][2]=="DNS"){
+              data_iec.push(point);
+            }
+            if(da[i][2]=="CIP"){
+              data_cip.push(point);
+            }
+          }
+        // console.log(data_tcp.length);
+        // console.log(data_iec.length);
+        // console.log(data_modbus.length);
+        // 
+        }
+        prev = curr;
+        
+      });
+        }
+        
+        
+      
+      
+      // console.log(data.length);
+      // }
+      
+      // update();
+      
+      // console.log(data);
+      setInterval(update, 500);
+      var globalX=0;
+      function tick() {
+        // Generate new data
+        // console.log(data);
+        // console.log(globalX);
+          // console.log(data_tcp[globalX].y+" ", data_iec[globalX].y);
+        var now = new Date();
+        var is_tcp = data_tcp.length!==0? data_tcp[globalX].y: 0;
+        var is_iec = data_iec.length!==0? data_iec[globalX].y: 0;
+        var is_modbus = data_modbus.length!==0? data_modbus[globalX].y: 0;
+        var is_cip = data_cip.length!==0? data_cip[globalX].y: 0;
+        var point = {
+          x: now,
+          y: is_tcp
+          };
+        data_tcp.shift();
+        dataplot_tcp.push(point);
+        var point = {
+          x: now,
+          y: is_iec
+          };
+        data_iec.shift();
+        dataplot_iec.push(point);
+        var point = {
+          x: now,
+          y: is_modbus
+          };
+        data_modbus.shift();
+        dataplot_modbus.push(point);
+        var point = {
+          x: now,
+          y: is_cip
+          };
+        data_cip.shift();
+        dataplot_cip.push(point);
+        // data.push(point);
+        // globalX += step;
+        // Draw new line
+        path.datum(dataplot_tcp)
+        .attr('class', 'smoothline')
+        .attr('d', line);
+        // Shift the chart left
+        x.domain(d3.extent(dataplot_tcp, function(d) { return d.x; }));
+        y.domain([0, 2000]);
+        axisX.transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+          .call(xAxis);
+        path.attr('transform', null)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+        
+        path2.datum(dataplot_iec)
+        .attr('class', 'smoothline')
+        .attr('d', line);
+        // // Shift the chart left
+        // x.domain(d3.extent(dataplot_iec, function(d) { return d.x; }));
+        // y.domain([0, 2000]);
+        axisX2.transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+          .call(xAxis2);
+        path2.attr('transform', null)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+      
+        path3.datum(dataplot_modbus)
+        .attr('class', 'smoothline')
+        .attr('d', line);
+        // // Shift the chart left
+        // x.domain(d3.extent(dataplot_iec, function(d) { return d.x; }));
+        // y.domain([0, 2000]);
+        axisX3.transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+          .call(xAxis3);
+        path3.attr('transform', null)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+      
+        path4.datum(dataplot_cip)
+        .attr('class', 'smoothline')
+        .attr('d', line);
+        // // Shift the chart left
+        // x.domain(d3.extent(dataplot_iec, function(d) { return d.x; }));
+        // y.domain([0, 2000]);
+        axisX4.transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+          .call(xAxis4);
+        path4.attr('transform', null)
+          .transition()
+          .duration(duration)
+          .ease(d3.easeLinear,.1)
+          .on('end', tick)
+          // .attr('transform', 'translate(' + x(globalX - max) + ')')
+          // 
+        // Remote old data (max 50 points)
+        if (dataplot_tcp.length > 100) 
+          dataplot_tcp.shift();
+      
+        if (dataplot_iec.length > 100) 
+          dataplot_iec.shift();
+      
+        if (dataplot_modbus.length > 100) 
+          dataplot_modbus.shift();
+      
+        if (dataplot_cip.length > 100) 
+          dataplot_cip.shift();
+        
+        // }
+        
+      }
+      tick();
+      </script>
+
+
 <script>
 
-// set the dimensions and margins of the graph
-var margin = {top: 20, right: 20, bottom: 50, left: 70},
-      width = 200 - margin.left - margin.right,
-      height = 100 - margin.top - margin.bottom ;
-  
-  // parse the date / time
-  var parseMilliseconds = d3.utcParse("%Y-%m-%d %H:%M:%S.%L"),
-      stripNanoseconds = function(s) { return s.slice(0, -4); },
-      parseDate = function(s) { return parseMilliseconds(stripNanoseconds(s)); };
-  // var parseDate = d3.utcParse("%Y-%m-%d %H:%M:%S.%L%L");
-  
-  // set the ranges
-  var x = d3.scaleTime().rangeRound([0, width]);
-  var y = d3.scaleLinear().rangeRound([height, 0]);
-  
-  // define the line
-  var valueline = d3.line()
-      .x(function(d) { return x(d[0]); })
-      .y(function(d) { return y(d[1]); });
-  
-  // append the svg obgect to the body of the page
-  // appends a 'group' element to 'svg'
-  // moves the 'group' element to the top left margin
-  var svg1 = d3.select("#TCP").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-        .attr("class", "axisRed")
-      .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-  
-  
-  // Get the data
-  d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-    if (error) throw error;
-    // 
-    // // format the data
-    
-    data.forEach(function(d) {
-      if(d.protoc=="TCP")
-        d.len = d.len;
-      else
-        d.len = "0";
-    });
-    data=data.map(function(d1) {
-          return[
-              parseDate(d1["timestamp"]),
-              d1["len"]
-          ];
-        });
-    // Scale the range of the data
-    x.domain(d3.extent(data, function(d) { return d[0]; }));
-    y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-    
-    // Add the valueline path.
-    svg1.append("path")
-        .data([data])
-        .attr("class", "line")
-        .attr("d", valueline);
-    
-    svg1.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("TCP");
-    // Add the X Axis
-    // svg.append("g")
-        // .attr("transform", "translate(0," + height + ")")
-        // .call(d3.axisBottom(x));
-    
-    // Add the Y Axis
-    // svg.append("g")
-        // .call(d3.axisLeft(y));
-    
-    svg1.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-    
-  
-  });
-  </script>
-  <!-- <b>TCP</b> -->
-  <script>
-
-  
-  // append the svg obgect to the body of the page
-  // appends a 'group' element to 'svg'
-  // moves the 'group' element to the top left margin
-  var svg2 = d3.select("#UDP").append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("class", "axisRed")
-      .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-  
-  
-  // Get the data
-  d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-    if (error) throw error;
-    // 
-    // // format the data
-    
-    data.forEach(function(d) {
-      if(d.protoc=="UDP")
-        d.len = d.len;
-      else
-        d.len = "0";
-    });
-    data=data.map(function(d1) {
-          return[
-              parseDate(d1["timestamp"]),
-              d1["len"]
-          ];
-        });
-    // Scale the range of the data
-    x.domain(d3.extent(data, function(d) { return d[0]; }));
-    y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-    
-    // Add the valueline path.
-    svg2.append("path")
-        .data([data])
-        .attr("class", "line")
-        .attr("d", valueline);
-  
-    svg2.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("UDP");
-    // // Add the X Axis
-    // svg2.append("g")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x));
-    
-    // // Add the Y Axis
-    // svg2.append("g")
-    //     .call(d3.axisLeft(y));
-    
-    svg2.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-  
-  });
-    
-    // append the svg obgect to the body of the page
-    // appends a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
-    var svg3 = d3.select("#ModbusTCP").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("class", "axisRed")
-        .attr("transform",
-              "translate(" + margin.left + "," + margin.top + ")");
-    
-    
-    // Get the data
-    d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-      if (error) throw error;
-      // 
-      // // format the data
-      
-      data.forEach(function(d) {
-        if(d.protoc=="ModbusTCP")
-          d.len = d.len;
-        else
-          d.len = "0";
-      });
-      data=data.map(function(d1) {
-            return[
-                parseDate(d1["timestamp"]),
-                d1["len"]
-            ];
-          });
-      // console.log(d3.max(data, function(d) { return Number(d[1]); }));
-      // Scale the range of the data
-      x.domain(d3.extent(data, function(d) { return d[0]; }));
-      y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-      // Add the valueline path.
-      svg3.append("path")
-          .data([data])
-          .attr("class", "line")
-          .attr("d", valueline);
-    
-      // Add the X Axis
-    svg3.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("ModbusTCP");
-    // Add the X Axis
-    // svg3.append("g")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x));
-    
-    // // Add the Y Axis
-    // svg3.append("g")
-    //     .call(d3.axisLeft(y));
-    
-    svg3.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-    
-    });
-    
-      
-      // append the svg obgect to the body of the page
-      // appends a 'group' element to 'svg'
-      // moves the 'group' element to the top left margin
-
-
-      var svg4 = d3.select("#CIP").append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("class", "axisRed")
-          .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-      
-      
-      // Get the data
-      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-        if (error) throw error;
-        // 
-        // // format the data
-        
-        data.forEach(function(d) {
-          if(d.protoc=="CIP")
-            d.len = d.len;
-          else
-            d.len = "0";
-        });
-        data=data.map(function(d1) {
-              return[
-                  parseDate(d1["timestamp"]),
-                  d1["len"]
-              ];
-            });
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d[0]; }));
-        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-        
-        // Add the valueline path.
-        svg4.append("path")
-            .data([data])
-            .attr("class", "line")
-            .attr("d", valueline);
-      
-        // Add the X Axis
-    svg4.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("CIP");
-    // Add the X Axis
-    // svg4.append("g")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x));
-    
-    // // Add the Y Axis
-    // svg4.append("g")
-    //     .call(d3.axisLeft(y));
-    
-    svg4.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-      
-      });
-      
-      var svg5 = d3.select("#IEC104").append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("class", "axisRed")
-          .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-      
-      
-      // Get the data
-      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-        if (error) throw error;
-        // 
-        // // format the data
-        
-        data.forEach(function(d) {
-          if(d.protoc=="IEC104")
-            d.len = d.len;
-          else
-            d.len = "0";
-        });
-        data=data.map(function(d1) {
-              return[
-                  parseDate(d1["timestamp"]),
-                  d1["len"]
-              ];
-            });
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d[0]; }));
-        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-        
-        // Add the valueline path.
-        svg5.append("path")
-            .data([data])
-            .attr("class", "line")
-            .attr("d", valueline);
-      
-        // Add the X Axis
-    svg5.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("IEC104");
-    // Add the X Axis
-    // svg5.append("g")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x));
-    
-    // // Add the Y Axis
-    // svg5.append("g")
-    //     .call(d3.axisLeft(y));
-    
-    svg5.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-      
-      });
-
-      var svg6 = d3.select("#FTP").append("svg")
-          .attr("width", width + margin.left + margin.right)
-          .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("class", "axisRed")
-          .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-      
-      
-      // Get the data
-      d3.csv("{{ url_for('static', filename='data.log') }}", function(error, data) {
-        if (error) throw error;
-        // 
-        // // format the data
-        
-        data.forEach(function(d) {
-          if(d.protoc=="FTP")
-            d.len = d.len;
-          else
-            d.len = "0";
-        });
-        data=data.map(function(d1) {
-              return[
-                  parseDate(d1["timestamp"]),
-                  d1["len"]
-              ];
-            });
-        // Scale the range of the data
-        x.domain(d3.extent(data, function(d) { return d[0]; }));
-        y.domain([0, d3.max(data, function(d) { return Number(d[1]); })]);
-        
-        // Add the valueline path.
-        svg6.append("path")
-            .data([data])
-            .attr("class", "line")
-            .attr("d", valueline);
-      
-        // Add the X Axis
-    svg6.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("FTP");
-    // Add the X Axis
-    // svg6.append("g")
-    //     .attr("transform", "translate(0," + height + ")")
-    //     .call(d3.axisBottom(x));
-    
-    // // Add the Y Axis
-    // svg6.append("g")
-    //     .call(d3.axisLeft(y));
-    
-    svg6.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-    //   .text("Packet Size");  
-      
-      });
       $.ajax({
                 cache: false,
             });
@@ -916,7 +789,7 @@ var margin = {top: 20, right: 20, bottom: 50, left: 70},
             setInterval(function() {
                 $.getJSON("{{ url_for('static', filename='graph.json') }}", function(json) {
                     current = JSON.stringify(json);
-                    console.log(previous==current);
+                    // console.log(previous==current);
                     if (previous && current && previous !== current) {
                         
                         location.reload();
