@@ -9,6 +9,10 @@ app = Flask(__name__, static_url_path='/static')
 def index():
     return render_template('network.html')
 
+@app.route('/live')
+def live():
+    return render_template('live.html')
+
 @app.route('/viewnode', methods = ['GET'])
 def viewnode():
     node = request.args.get('node')
