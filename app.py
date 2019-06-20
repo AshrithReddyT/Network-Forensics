@@ -7,23 +7,35 @@ app = Flask(__name__, static_url_path='/static')
 
 @app.route('/')
 def index():
-    with open('./static/graph.json') as json_file:
-        data = json.load(json_file)
-        links = data['links']
-        nodes = data['nodes']
-        unsafe_links = len([x for x in links if x['value']==1])
-        unsafe_nodes = len([x for x in nodes if x['group']==0])
-        
-        nodes = len(nodes)
-        links = len(links)
-        safe_nodes = nodes - unsafe_nodes
-        safe_links = links - unsafe_links
-    return render_template('network.html', links = links, nodes = nodes, unsafe_links= unsafe_links, unsafe_nodes = unsafe_nodes, safe_links = safe_links, safe_nodes = safe_nodes)
+    return render_template('network.html')
 
 @app.route('/viewnode', methods = ['GET'])
 def viewnode():
     node = request.args.get('node')
-    return render_template('viewnode.html', node=node)
+    list_of_files = glob.glob('./logs/events/*.log')
+    protocs = {"TCP":0,"UDP":0,"DNS":0,"DHCP":0,"ICMP":0,"ModbusTCP":0,"CIP":0,"IEC104":0,"Others":0}
+    latest_file = max(list_of_files, key=os.path.getctime)
+    events_lines = []
+    with open(latest_file,"r") as f:
+        line = f.readline()
+        while line:
+            src_ip = line.split(",")[1]
+            dst_ip = line.split(",")[2]
+            # print(ip, node)
+            if str(src_ip)==str(node) or str(dst_ip)==str(node):
+                events_lines.append(line.split(",")[-2])
+            line = f.readline()
+    # lines = lines[::-1]
+    for line in events_lines:
+        if line in protocs.keys():
+            protocs[line]+=1
+        else:
+            protocs["Others"]+=1
+    
+    for key, value in protocs.items():
+        protocs[key] = round((protocs[key]/len(events_lines))*100)
+    print(protocs)
+    return render_template('viewnode.html', node=node, protocs=protocs)
 
 @app.route('/3d')
 def three():
