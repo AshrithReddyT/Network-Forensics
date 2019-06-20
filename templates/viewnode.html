@@ -94,7 +94,7 @@
 				</table>
             </centerl>
         </div>
-        <div id="overlay" style = "margin-right: 50%; margin-top: 25%">
+        <div id="overlay" style = "margin-right: 60%; margin-top: 20%; border-width: 5px ;border: #ccc">
             <center>
                 <center2>
     
@@ -191,7 +191,7 @@
         <script>
 			d3.csv("{{ url_for('static', filename='nmap.csv') }}", function(data) {
 
-				var head = ['IP Address','FQDN','OS','Port','Protocol','Service','Name','Version'];
+				var head = ['IP Address','FQDN','Port','Protocol','Service','Name','Version'];
 				var table = document.getElementById("myTable");
 				var header = table.createTHead();
 		    	var row = header.insertRow(0); 
@@ -436,9 +436,9 @@
             <script>
 
                 // set the dimensions and margins of the graph
-                var width = 450
-                    height = 450
-                    margin = 40
+                var width = 300
+                    height = 300
+                    margin = 50
                 
                 // The radius of the pieplot is half the width or half the height (smallest one). I substract a bit of margin.
                 var radius = Math.min(width, height) / 2 - margin
@@ -457,7 +457,7 @@
                 var data = {"TCP":protocs['TCP'], "UDP":protocs['UDP'], "ModbusTCP":protocs['ModbusTCP'], "CIP":protocs['CIP'], "IEC104":protocs['IEC104'], "DNS":protocs['DNS'], "Others":protocs['Others'] ,"ICMP":protocs['ICMP']}
                 console.log(data);
                 // set the color scale
-                colors = d3.scaleOrdinal(["#6b486b", "#a05d56", "#d0743c", "#ff8c00", "#98abc5", "#8a89a6", "#7b6888", "#7b1233",  "#d1249c"]);
+                colors = d3.scaleOrdinal(["#366abc", "#d87e0f", "#9b9792", "#7ae2c5", "#dbc943", "#01117a", "#af3f66", "#f9e907",  "#277005"]);
                 
                 // Compute the position of each group on the pie:
                 var pie = d3.pie()
@@ -467,7 +467,7 @@
                 
                 // The arc generator
                 var arc = d3.arc()
-                  .innerRadius(radius * 0.5)         // This is the size of the donut hole
+                  .innerRadius(radius * 0.4)         // This is the size of the donut hole
                   .outerRadius(radius * 0.8)
                 
                 // Another arc that won't be drawn. Just for labels positionning
@@ -484,7 +484,7 @@
                   .attr('d', arc)
                   .attr('fill', function(d){ return(colors(d.data.key)) })
                   .attr("stroke", "white")
-                  .style("stroke-width", "2px")
+                  .style("stroke-width", "1px")
                   .style("opacity", function(d){ return d.data.value == 0 ? 0 : 0.7})
                 
                 // Add the polylines between chart and labels:
