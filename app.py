@@ -6,6 +6,7 @@ import json
 white_list = [{'src': '192.168.100.40'  , 'dst': '192.168.100.115', 'port': '502'},
               {'src': '192.168.100.40', 'dst': '192.168.100.5', 'port' : '502' },
               {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '54844'},
+              {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '58156'},
               {'src': '192.168.100.45', 'dst': '192.168.100.5', 'port': '44818'}
              ]
 
@@ -59,15 +60,36 @@ def lineCharts():
 def pie():
     list_of_files = glob.glob('./logs/incidents/*.log') 
     latest_file = max(list_of_files, key=os.path.getctime)
+    alert_file = './logs/incidents/alert.csv'
     incidents_lines = []
-    malicious_events = {"TCP":0,"UDP":0,"DNS":0,"DHCP":0,"ICMP":0,"Modbus_TCP":0,"CIP":0,"IEC104":0,"Others":0}
-    normal_events = {"TCP":0,"UDP":0,"DNS":0,"DHCP":0,"ICMP":0,"Modbus_TCP":0,"CIP":0,"IEC104":0,"Others":0}
+    malicious_events = {"TCP":0,"UDP":0,"DNS":0,"DHCP":0,"ICMP":0,"ModbusTCP":0,"CIP":0,"IEC104":0,"Others":0}
+    normal_events = {"TCP":0,"UDP":0,"DNS":0,"DHCP":0,"ICMP":0,"ModbusTCP":0,"CIP":0,"IEC104":0,"Others":0}
     with open(latest_file,"r") as f:
         line = f.readline()
         while line:
             incidents_lines.append(line.split(",")[-1][:-1])
             line = f.readline()
+    with open(alert_file,"r") as f:
+        line = f.readline()
+        while line:
+            words = line.split(',')
+            for _ in white_list:
+                if words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']) or  words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']):
+                    line = f.readline()
+                    words = line.split(',')
+                    continue
+            # print(words)
+            if(words[1] == '502' or words[3] == '502'):
+                words[-1] = 'ModbusTCP'
+            elif(words[1] == '54844' or words[3] == '54844'):
+                words[-1] = 'IEC104'
+            elif(words[1] == '44818' or words[3] == '44818'):
+                words[-1] = 'CIP'
+            inci = words[5]
+            incidents_lines.append(inci)
+            line = f.readline()
     for line in incidents_lines:
+        print(line)
         if line in malicious_events.keys():
             malicious_events[line]+=1
         else:

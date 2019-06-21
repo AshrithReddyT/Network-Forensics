@@ -1,7 +1,7 @@
 import networkx as nx
 import json
 from scapy.all import *
-import modbus, cip
+import modbus, cip, iec
 import matplotlib.pyplot as plt
 import argparse
 import pandas as pd 
