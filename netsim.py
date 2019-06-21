@@ -1,6 +1,7 @@
 import networkx as nx
 import json
 from scapy.all import *
+import modbus, cip
 import matplotlib.pyplot as plt
 import argparse
 import pandas as pd 
@@ -37,12 +38,13 @@ def createGraph(pkts):
     global prev_comm
     comm_count = {}
     max = 0
-    # pkts = rdpcap("CIP.pcapng")
+    # pkts = rdpcap("Modbus_TCP.pcapng")
     comm = []
     protoc = []
     devices = {}
     for i, pkt in enumerate(pkts):
         try:
+            # print(pkt.show())
             devices[pkts[i][IP].src] = pkts[i][Ether].src
             devices[pkts[i][IP].dst] = pkts[i][Ether].dst
             comm.append((pkts[i][IP].src, pkts[i][IP].dst))
@@ -169,7 +171,7 @@ class TCP_Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>15):
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'r+') as f:

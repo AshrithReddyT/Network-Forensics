@@ -3,6 +3,12 @@ import glob
 import os
 import json
 
+white_list = [{'src': '192.168.100.40'  , 'dst': '192.168.100.115', 'port': '502'},
+              {'src': '192.168.100.40', 'dst': '192.168.100.5', 'port' : '502' },
+              {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '54844'},
+              {'src': '192.168.100.45', 'dst': '192.168.100.5', 'port': '44818'}
+             ]
+
 app = Flask(__name__, static_url_path='/static')
 
 @app.route('/')
@@ -83,8 +89,11 @@ def pie():
         else:
             normal_events["Others"]+=1
     
-    for key, value in malicious_events.items():
-        malicious_events[key] = malicious_events[key]/len(incidents_lines)
+    try:
+        for key, value in malicious_events.items():
+            malicious_events[key] = malicious_events[key]/len(incidents_lines)
+    except:
+        pass
     for key, value in normal_events.items():
         normal_events[key] = normal_events[key]/len(events_lines)
     print(malicious_events)
@@ -94,12 +103,32 @@ def pie():
 @app.route('/incidents')
 def incidents():
     list_of_files = glob.glob('./logs/incidents/*.log') 
+    alert_file = "./logs/incidents/alert.csv"
     latest_file = max(list_of_files, key=os.path.getctime)
     lines = []
     with open(latest_file,"r") as f:
         line = f.readline()
         while line:
             lines.append(line.split(","))
+            line = f.readline()
+    with open(alert_file,"r") as f:
+        line = f.readline()
+        while line:
+            words = line.split(',')
+            for _ in white_list:
+                if words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']) or  words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']):
+                    line = f.readline()
+                    words = line.split(',')
+                    continue
+            # print(words)
+            if(words[1] == '502' or words[3] == '502'):
+                words[-1] = 'ModbusTCP'
+            elif(words[1] == '54844' or words[3] == '54844'):
+                words[-1] = 'IEC104'
+            elif(words[1] == '44818' or words[3] == '44818'):
+                words[-1] = 'CIP'
+            inci = [words[0], words[2], words[4], words[5]]
+            lines.append(inci)
             line = f.readline()
     lines = lines[::-1]
     return render_template('incidents.html', data=lines)

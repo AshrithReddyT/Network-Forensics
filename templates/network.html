@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
-        <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-        <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/main.css') }}>
+        <link href="{{ url_for('static', filename='css/fontlato.css') }}" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/awesomemin.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}">
         <style> /* set the CSS */
 
         .column {
@@ -166,7 +166,7 @@
         <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
     </div>
             
-    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/jquery311.js') }}" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script type="text/javascript" src={{ url_for('static', filename='js/main.js') }}></script>
     <div id="canvas-wrap">
         <canvas id="sky">
@@ -299,9 +299,9 @@
     };
 
     </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery12.js') }}"></script>
     
-    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="{{ url_for('static', filename='js/d3v4.js') }}"></script>
     <script>
         var width = $(window).width() / 1.5; 
             height = $(window).height() / 1.2;
@@ -499,7 +499,7 @@
     </div>
 
 
-      <script src="http://d3js.org/d3.v4.min.js"></script>
+      <script src="{{ url_for('static', filename='js/d3v4.js') }}"></script>
       <script>
       // var margin = {top: 20, right: 20, bottom: 50, left: 70},
       //     width = 350 - margin.left - margin.right,
