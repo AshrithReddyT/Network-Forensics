@@ -194,7 +194,7 @@ var dataplot_cip = [];
 var width = 300;
 var height = 250;
 var globalX = 0;
-var duration = 5;
+var duration = 15;
 // var max = 500;
 // var step = 10;
 var chart = d3.select('#chart1')
@@ -300,10 +300,10 @@ function update(){
       if(da[i][2]=="TCP"){
         data_tcp.push(point);
       }
-      else if(da[i][2]=="UDP"){
+      else if(da[i][2]=="MOdbusTCP"){
         data_modbus.push(point);
       }
-      else if(da[i][2]=="DNS"){
+      else if(da[i][2]=="IEC104"){
         data_iec.push(point);
       }
       if(da[i][2]=="CIP"){

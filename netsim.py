@@ -200,7 +200,7 @@ def processPkt(pkt):
 	try:
 		if len(packets)%100==0:
 			createGraph(packets)
-		if len(packets)>=1000:
+		if len(packets)>=100000:
 			del packets[:100]
 				
 		packets.append(pkt)

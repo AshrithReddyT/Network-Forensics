@@ -5,11 +5,20 @@ import json
 
 white_list = [{'src': '192.168.100.40'  , 'dst': '192.168.100.115', 'port': '502'},
               {'src': '192.168.100.40', 'dst': '192.168.100.5', 'port' : '502' },
-              {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '54844'},
-              {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '58156'},
+              {'src': '192.168.100.12', 'dst': '192.168.100.40', 'port' : '502' },
+              {'src': '192.168.100.10', 'dst': '192.168.100.5', 'port': '2404'},
               {'src': '192.168.100.45', 'dst': '192.168.100.5', 'port': '44818'}
              ]
 
+mac_addr = [{'ip' : '192.168.100.40', 'mac' :'00:80:f4:14:f2:32'}
+            {'ip' : '192.168.100.115', 'mac' :'00:01:23:3e:86:3c'}
+            {'ip' : '192.168.100.5', 'mac' : '00:0d:48:31:c4:fe'}
+            {'ip' : '192.168.100.45', 'mac' : '00:0f:73:00:0f:51'}
+            {'ip' : '192.168.100.10', 'mac' : '00:80:f4:15:2b:0f'}
+            ]
+
+prev_port = 0
+orig_port = 0
 app = Flask(__name__, static_url_path='/static')
 
 @app.route('/')
@@ -54,10 +63,12 @@ def three():
 
 @app.route('/lineCharts')
 def lineCharts():
-    return render_template('lineCharts.html')
+    return render_template('live.html')
 
 @app.route('/pie')
 def pie():
+    global prev_port
+    global orig_port
     list_of_files = glob.glob('./logs/incidents/*.log') 
     latest_file = max(list_of_files, key=os.path.getctime)
     alert_file = './logs/incidents/alert.csv'
@@ -73,20 +84,33 @@ def pie():
         line = f.readline()
         while line:
             words = line.split(',')
-            for _ in white_list:
-                if words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']) or  words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']):
-                    line = f.readline()
-                    words = line.split(',')
-                    continue
-            # print(words)
-            if(words[1] == '502' or words[3] == '502'):
-                words[-1] = 'ModbusTCP'
-            elif(words[1] == '54844' or words[3] == '54844'):
-                words[-1] = 'IEC104'
-            elif(words[1] == '44818' or words[3] == '44818'):
-                words[-1] = 'CIP'
-            inci = words[5]
-            incidents_lines.append(inci)
+            flag = 0
+            if len(words)>0 and words[0]!='':
+                for _ in white_list:
+                    if words[0] == _['src'] and words[2] == _['dst'] and words[1] == _['port'] or words[0] == _['src'] and words[2] == _['dst'] and words[3] == _['port'] or   words[2] == _['src'] and words[0] == _['dst'] and words[1] == _['port'] or words[2] == _['src'] and words[0] == _['dst'] and words[3] == _['port']:
+                        flag = 1
+                        break
+                
+                if words[0] == '192.168.100.12' and words[2] == '192.168.100.40' or words[0] == '192.168.100.40' and words[2] == '192.168.100.12':
+                    if prev_port == 0:
+                        prev_port = orig_port = words[1] if words[1]!='502' else words[3]
+                    else:
+                        tmp = words[1] if words[1]!='502' else words[3]
+                        print(tmp, prev_port, orig_port)
+                        if prev_port != tmp and tmp == orig_port:
+                            inci = words[5]
+                            incidents_lines.append(inci)
+                        prev_port = tmp
+
+                if flag == 0:
+                    if(words[1] == '502' or words[3] == '502'):
+                        words[-1] = 'ModbusTCP'
+                    elif(words[1] == '2404' or words[3] == '2404'):
+                        words[-1] = 'IEC104'
+                    elif(words[1] == '44818' or words[3] == '44818'):
+                        words[-1] = 'CIP'
+                    inci = [words[0], words[2], words[4], words[5]]
+                    incidents_lines.append(inci)
             line = f.readline()
     for line in incidents_lines:
         print(line)
@@ -124,6 +148,8 @@ def pie():
     
 @app.route('/incidents')
 def incidents():
+    global prev_port
+    global orig_port
     list_of_files = glob.glob('./logs/incidents/*.log') 
     alert_file = "./logs/incidents/alert.csv"
     latest_file = max(list_of_files, key=os.path.getctime)
@@ -137,20 +163,43 @@ def incidents():
         line = f.readline()
         while line:
             words = line.split(',')
-            for _ in white_list:
-                if words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']) or  words[0] == _['src'] and words[2] == _['dst'] and (words[1] == _['port'] or words[3] == _['port']):
+            flag = 0
+            if len(words)>0 and words[0]!='':
+                for __ in mac_addr:
+                    if (words[0] == __['src'] and words[6]!=['mac']) or (words[2] == __['src'] and words[7] != __['mac']):
+                        inci = [words[0], words[2], "Possible IP spoofing", words[5]]
+                        lines.append(inci)
+                        flag = 1
+                
+                if flag == 1;
                     line = f.readline()
-                    words = line.split(',')
                     continue
-            # print(words)
-            if(words[1] == '502' or words[3] == '502'):
-                words[-1] = 'ModbusTCP'
-            elif(words[1] == '54844' or words[3] == '54844'):
-                words[-1] = 'IEC104'
-            elif(words[1] == '44818' or words[3] == '44818'):
-                words[-1] = 'CIP'
-            inci = [words[0], words[2], words[4], words[5]]
-            lines.append(inci)
+
+                for _ in white_list:
+                    if words[0] == _['src'] and words[2] == _['dst'] and words[1] == _['port'] or words[0] == _['src'] and words[2] == _['dst'] and words[3] == _['port'] or   words[2] == _['src'] and words[0] == _['dst'] and words[1] == _['port'] or words[2] == _['src'] and words[0] == _['dst'] and words[3] == _['port']:
+                        flag = 1
+                        break
+                
+                if words[0] == '192.168.100.12' and words[2] == '192.168.100.40' or words[0] == '192.168.100.40' and words[2] == '192.168.100.12':
+                    if prev_port == 0:
+                        prev_port = orig_port = words[1] if words[1]!='502' else words[3]
+                    else:
+                        tmp = words[1] if words[1]!='502' else words[3]
+                        print(tmp, prev_port, orig_port)
+                        if prev_port != tmp and tmp == orig_port:
+                            inci = [words[0], words[2], "Possible MITM (Port Change)", words[5]]
+                            lines.append(inci)
+                        prev_port = tmp
+
+                if flag == 0:
+                    if(words[1] == '502' or words[3] == '502'):
+                        words[-1] = 'ModbusTCP'
+                    elif(words[1] == '2404' or words[3] == '2404'):
+                        words[-1] = 'IEC104'
+                    elif(words[1] == '44818' or words[3] == '44818'):
+                        words[-1] = 'CIP'
+                    inci = [words[0], words[2], words[4], words[5]]
+                    lines.append(inci)
             line = f.readline()
     lines = lines[::-1]
     return render_template('incidents.html', data=lines)

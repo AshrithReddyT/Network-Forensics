@@ -179,7 +179,7 @@ class CIP_PathField(scapy_all.StrLenField):
 
 
 class CIP_Path(scapy_all.Packet):
-    name = "CIP_Path"
+    name = "CIP"
     fields_desc = [
         scapy_all.ByteField("wordsize", None),
         CIP_PathField("path", None, length_from=lambda p: 2 * p.wordsize),
@@ -234,7 +234,7 @@ class CIP_Path(scapy_all.Packet):
 
 class CIP_ResponseStatus(scapy_all.Packet):
     """The response field of CIP headers"""
-    name = "CIP_ResponseStatus"
+    name = "CIP"
     fields_desc = [
         scapy_all.XByteField("reserved", 0),  # Reserved byte, always null
         scapy_all.ByteEnumField("status", 0, {0: "success"}),
@@ -401,7 +401,7 @@ class _CIPMSPPacketList(scapy_all.PacketListField):
 
 class CIP_ConnectionParam(scapy_all.Packet):
     """CIP Connection parameters"""
-    name = "CIP_ConnectionParam"
+    name = "CIP"
     fields_desc = [
         scapy_all.BitEnumField("owner", 0, 1, {0: "exclusive", 1: "multiple"}),
         scapy_all.BitEnumField("connection_type", 2, 2,
@@ -426,7 +426,7 @@ class CIP_ConnectionParam(scapy_all.Packet):
 
 class CIP_ReqForwardOpen(scapy_all.Packet):
     """Forward Open request"""
-    name = "CIP_ReqForwardOpen"
+    name = "CIP"
     fields_desc = [
         scapy_all.BitField("priority", 0, 4),
         scapy_all.BitField("tick_time", 0, 4),
@@ -450,7 +450,7 @@ class CIP_ReqForwardOpen(scapy_all.Packet):
 
 class CIP_RespForwardOpen(scapy_all.Packet):
     """Forward Open response"""
-    name = "CIP_RespForwardOpen"
+    name = "CIP"
     fields_desc = [
         scapy_all.LEIntField("OT_network_connection_id", None),
         scapy_all.LEIntField("TO_network_connection_id", None),
@@ -466,7 +466,7 @@ class CIP_RespForwardOpen(scapy_all.Packet):
 
 class CIP_ReqForwardClose(scapy_all.Packet):
     """Forward Close request"""
-    name = "CIP_ReqForwardClose"
+    name = "CIP"
     fields_desc = [
         scapy_all.XByteField("priority_ticktime", 0),
         scapy_all.ByteField("timeout_ticks", 249),
@@ -481,7 +481,7 @@ class CIP_ReqForwardClose(scapy_all.Packet):
 
 class CIP_MultipleServicePacket(scapy_all.Packet):
     """Multiple_Service_Packet request or response"""
-    name = "CIP_MultipleServicePacket"
+    name = "CIP"
     fields_desc = [
         utils.LEShortLenField("count", None, count_of="packets"),
         scapy_all.FieldListField("offsets", [], scapy_all.LEShortField("", 0),

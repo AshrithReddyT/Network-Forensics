@@ -8,17 +8,17 @@ import utils
 
 
 class ENIP_ConnectionAddress(scapy_all.Packet):
-    name = "ENIP_ConnectionAddress"
+    name = "CIP"
     fields_desc = [scapy_all.LEIntField("connection_id", 0)]
 
 
 class ENIP_ConnectionPacket(scapy_all.Packet):
-    name = "ENIP_ConnectionPacket"
+    name = "CIP"
     fields_desc = [scapy_all.LEShortField("sequence", 0)]
 
 
 class ENIP_SendUnitData_Item(scapy_all.Packet):
-    name = "ENIP_SendUnitData_Item"
+    name = "CIP"
     fields_desc = [
         scapy_all.LEShortEnumField("type_id", 0, {
             0x0000: "null_address",  # NULL Address
@@ -42,7 +42,7 @@ class ENIP_SendUnitData_Item(scapy_all.Packet):
 
 class ENIP_SendUnitData(scapy_all.Packet):
     """Data in ENIP header specific to the specified command"""
-    name = "ENIP_SendUnitData"
+    name = "CIP"
     fields_desc = [
         scapy_all.LEIntField("interface_handle", 0),
         scapy_all.LEShortField("timeout", 0),
@@ -53,12 +53,12 @@ class ENIP_SendUnitData(scapy_all.Packet):
 
 
 class ENIP_SendRRData(scapy_all.Packet):
-    name = "ENIP_SendRRData"
+    name = "CIP"
     fields_desc = ENIP_SendUnitData.fields_desc
 
 
 class ENIP_RegisterSession(scapy_all.Packet):
-    name = "ENIP_RegisterSession"
+    name = "CIP"
     fields_desc = [
         scapy_all.LEShortField("protocol_version", 1),
         scapy_all.LEShortField("options", 0),
@@ -67,7 +67,7 @@ class ENIP_RegisterSession(scapy_all.Packet):
 
 class ENIP_TCP(scapy_all.Packet):
     """Ethernet/IP packet over TCP"""
-    name = "ENIP_TCP"
+    name = "CIP"
     fields_desc = [
         scapy_all.LEShortEnumField("command_id", None, {
             0x0004: "ListServices",
