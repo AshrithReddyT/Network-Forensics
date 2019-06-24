@@ -41,7 +41,7 @@ def createGraph(dpkts):
     pkts=[]
     max = 0
     for i in dpkts:
-        pkts.append(dpkts[1])
+        pkts.append(i[1])
     # pkts = rdpcap("CIP.pcapng")
     comm = []
     protoc = []
@@ -178,7 +178,7 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>10:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>250 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     # print(ips)
                     log = ips[0]+","+ips[1]+",Denial of service(DOS) Attempt,"+ips[2]+"\n"
@@ -212,7 +212,7 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>30:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>500 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1 : 
                     ips = ip.split(':')
                     log = "Multiple IPs,"+ips[0]+",Distributed Denial of service (DDOS) Attempt,"+ips[1]+"\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
@@ -246,7 +246,7 @@ class TCP_Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>250) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
