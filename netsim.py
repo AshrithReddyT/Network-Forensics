@@ -178,11 +178,11 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>0:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>10:
                     ips = ip.split(':')
                     # print(ips)
                     log = ips[0]+","+ips[1]+",Denial of service(DOS) Attempt,"+ips[2]+"\n"
-                    with open(INCIDENTS_LOGFILE, 'a') as f:
+                    with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
                                 break
@@ -212,10 +212,10 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>0:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>30:
                     ips = ip.split(':')
                     log = "Multiple IPs,"+ips[0]+",Distributed Denial of service (DDOS) Attempt,"+ips[1]+"\n"
-                    with open(INCIDENTS_LOGFILE, 'a') as f:
+                    with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
                                 break
@@ -249,7 +249,7 @@ class TCP_Attacks():
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>5):
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
-                    with open(INCIDENTS_LOGFILE, 'a') as f:
+                    with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
                                 break
@@ -341,8 +341,8 @@ class Parser:
                     break
 
         if user or pw:
-            with open(INCIDENTS_LOGFILE, 'a') as f:
-                log = str(self.src)+','+str(host)+','+'HTTP Login Attempt USER: '+user+'PASS: '+ pw+','+'HTTP\n'
+            with open(INCIDENTS_LOGFILE, 'a+') as f:
+                log = str(self.src)+','+str(host)+','+'HTTP Login Attempt USER: '+user+' PASS: '+ pw+','+'HTTP\n'
                 f.write(log)
             self.dest = host
 
@@ -383,31 +383,34 @@ def ftp(pkt):
     src     = pkt[IP].src
     dport   = pkt[TCP].dport
     sport   = pkt[TCP].sport
-    load    = str(pkt[Raw].load)
-    load    = load.replace('\r\n', '')
-
+    load    = pkt[Raw].load
+    load = load.decode('utf-8')    
+    load = load.replace('\n','')
+    load = load.replace('\r','')
+    # print(load)
     if 'USER ' in load:
         user = load.strip('USER ')
         ftpuser = user
 
     elif 'PASS ' in load:
         pw = load.strip('PASS ')
-        with open(INCIDENTS_LOGFILE, 'a') as f:
+        with open(INCIDENTS_LOGFILE, 'a+') as f:
             log = str(src)+','+str(dest)+','+'FTP Login Attempt USER: '+str(ftpuser)+'PASS: '+ str(pw)+','+'FTP\n'
             f.write(log)
             ftpuser=None
     
     if 'authentication failed' in load:
             resp = load
-            with open(INCIDENTS_LOGFILE, 'a') as f:
+            with open(INCIDENTS_LOGFILE, 'a+') as f:
                 log = str(src)+','+str(dest)+','+'FTP response: '+str(resp)+','+'FTP\n'
                 f.write(log)
 
     if '230 OK' in load:
         resp = load
-        with open(INCIDENTS_LOGFILE, 'a') as f:
+        with open(INCIDENTS_LOGFILE, 'a+') as f:
             log = str(src)+','+str(dest)+','+'FTP response: '+str(resp)+','+'FTP\n'
             f.write(log)
+            # f.DOS()
             
 i = 0
 def processPkt(pkt):
@@ -415,11 +418,11 @@ def processPkt(pkt):
     if pkt.haslayer(Raw) and pkt.haslayer(TCP):
         dport   = pkt[TCP].dport
         sport   = pkt[TCP].sport
-        print(dport, sport)
+        # print(dport, sport)
         load    = str(pkt[Raw].load)
         if dport == 21 or sport == 21:
             port = 21
-            print(pkt)
+            # print(pkt)
             ftp(pkt)
         elif dport == 80 or sport == 80:
             parser = Parser()
