@@ -10,10 +10,10 @@ white_list = [{'src': '192.168.100.40'  , 'dst': '192.168.100.115', 'port': '502
               {'src': '192.168.100.45', 'dst': '192.168.100.5', 'port': '44818'}
              ]
 
-mac_addr = [{'ip' : '192.168.100.40', 'mac' :'00:80:f4:14:f2:32'}
-            {'ip' : '192.168.100.115', 'mac' :'00:01:23:3e:86:3c'}
-            {'ip' : '192.168.100.5', 'mac' : '00:0d:48:31:c4:fe'}
-            {'ip' : '192.168.100.45', 'mac' : '00:0f:73:00:0f:51'}
+mac_addr = [{'ip' : '192.168.100.40', 'mac' :'00:80:f4:14:f2:32'},
+            {'ip' : '192.168.100.115', 'mac' :'00:01:23:3e:86:3c'},
+            {'ip' : '192.168.100.5', 'mac' : '00:0d:48:31:c4:fe'},
+            {'ip' : '192.168.100.45', 'mac' : '00:0f:73:00:0f:51'},
             {'ip' : '192.168.100.10', 'mac' : '00:80:f4:15:2b:0f'}
             ]
 
@@ -86,6 +86,16 @@ def pie():
             words = line.split(',')
             flag = 0
             if len(words)>0 and words[0]!='':
+                for __ in mac_addr:
+                    if (words[0] == __['ip'] and words[6]!=['mac']) or (words[2] == __['ip'] and words[7] != __['mac']):
+                        inci = [words[0], words[2], "Possible IP spoofing", words[5]]
+                        lines.append(inci)
+                        flag = 1
+                
+                if flag == 1:
+                    line = f.readline()
+                    continue
+
                 for _ in white_list:
                     if words[0] == _['src'] and words[2] == _['dst'] and words[1] == _['port'] or words[0] == _['src'] and words[2] == _['dst'] and words[3] == _['port'] or   words[2] == _['src'] and words[0] == _['dst'] and words[1] == _['port'] or words[2] == _['src'] and words[0] == _['dst'] and words[3] == _['port']:
                         flag = 1
@@ -98,8 +108,8 @@ def pie():
                         tmp = words[1] if words[1]!='502' else words[3]
                         print(tmp, prev_port, orig_port)
                         if prev_port != tmp and tmp == orig_port:
-                            inci = words[5]
-                            incidents_lines.append(inci)
+                            inci = [words[0], words[2], "Possible MITM (Port Change)", words[5]]
+                            lines.append(inci)
                         prev_port = tmp
 
                 if flag == 0:
@@ -110,7 +120,7 @@ def pie():
                     elif(words[1] == '44818' or words[3] == '44818'):
                         words[-1] = 'CIP'
                     inci = [words[0], words[2], words[4], words[5]]
-                    incidents_lines.append(inci)
+                    lines.append(inci)
             line = f.readline()
     for line in incidents_lines:
         print(line)
@@ -166,12 +176,12 @@ def incidents():
             flag = 0
             if len(words)>0 and words[0]!='':
                 for __ in mac_addr:
-                    if (words[0] == __['src'] and words[6]!=['mac']) or (words[2] == __['src'] and words[7] != __['mac']):
+                    if (words[0] == __['ip'] and words[6]!=['mac']) or (words[2] == __['ip'] and words[7] != __['mac']):
                         inci = [words[0], words[2], "Possible IP spoofing", words[5]]
                         lines.append(inci)
                         flag = 1
                 
-                if flag == 1;
+                if flag == 1:
                     line = f.readline()
                     continue
 
