@@ -178,7 +178,8 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>250 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
+                # print((IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()))
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>25 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     # print(ips)
                     log = ips[0]+","+ips[1]+",Denial of service(DOS) Attempt,"+ips[2]+"\n"
@@ -212,7 +213,8 @@ class Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>500 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1 : 
+                # print((IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()))
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>50 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1 : 
                     ips = ip.split(':')
                     log = "Multiple IPs,"+ips[0]+",Distributed Denial of service (DDOS) Attempt,"+ips[1]+"\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
@@ -435,6 +437,7 @@ def processPkt(pkt):
     try:
         if len(packets)%100==0:
             createGraph(packets)
+        # print(len(packets))
         if len(packets)>=1000:
             del packets[:100]
 				
