@@ -383,7 +383,7 @@ span {
                 .enter().append("path")
                 .attr("class", "link")
                 .attr("fill", "none")
-                .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return d.size * 10})
+                .attr("stroke-width", function(d){ if(d.size * 10<1){return 1;}return (d.size * 10)%30})
                 .attr("opacity", 0.7)
                 .style("stroke", function(d) { if(d.value==0){return "green"} else{return "red"} });
 

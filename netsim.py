@@ -68,6 +68,7 @@ def createGraph(dpkts):
         except:
             pass
 
+    malicious_nodes = {}
     # ScanIps(devices.keys())    
     with open(INCIDENTS_LOGFILE, 'r') as f:
         line = f.readline()
@@ -75,6 +76,7 @@ def createGraph(dpkts):
             words = line.split(',')
             malicious[words[0]+":"+words[1]]=1
             malicious[words[1]+":"+words[0]]=1
+            malicious_nodes[str(words[1])] = 0
             line = f.readline()
     G=nx.Graph()
     G.add_nodes_from(devices.keys())
@@ -97,7 +99,11 @@ def createGraph(dpkts):
             malicious[u[0]+":"+u[1]] = 0
             malicious[u[1]+":"+u[0]] = 0
 
-    nodes = [{'name': str(i), 'group':int(random.randint(0,100))%2}
+    for n in G.nodes():
+        if n not in malicious_nodes:
+            malicious_nodes[n] = 1
+
+    nodes = [{'name': str(i), 'group':malicious_nodes[i]}
             for i in G.nodes()]
     links = [{'source': all_nodes.index(u[0]), 'target': all_nodes.index(u[1]), 'value':malicious[u[0]+":"+u[1]], 'size':comm_count[u[0]+":"+u[1]]/max}
             for u in G.edges()]
@@ -248,7 +254,7 @@ class TCP_Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>250) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>0) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
