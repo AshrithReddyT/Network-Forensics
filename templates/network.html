@@ -88,7 +88,7 @@
      /* margin: 0 auto; */
      }
      #canvas-wrap { position:relative } /* Make this a positioned parent */
-    #overlay { position:absolute; top:20px; left:30px; }
+    #overlay { position:absolute; top:8px; left:30px; }
     .toplcorner{
     position:absolute;
     top:10%;
@@ -150,7 +150,17 @@
     margin-top:40%;
     margin-left:75%;
     }
-    // css example
+    .column {
+    float: left;
+    width: 25%;
+  }
+
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
 span {
   content: "\26A0";
 }
@@ -314,7 +324,7 @@ span {
     <script src="{{ url_for('static', filename='js/d3v4.js') }}"></script>
     <script>
         var width = $(window).width() / 1.5; 
-            height = $(window).height() / 1.2;
+            height = $(window).height() * 0.70;
 
         var svg = d3.select("center").append("svg")
             .attr("width", width)
@@ -503,11 +513,11 @@ span {
         });
     </script>
 
-    <div  id="overlay"  style="margin-top: 35%; margin-left: 10%"> 
-        <svg id="chart1" ><div id="TCP" style="position: absolute; margin-left:6%"></div><div style="position: absolute; margin-left:9%"><b style="font-color: #fff">TCP</b></div></svg>
-        <svg  id="chart2"><div id="ModbusTCP" style="position: absolute; margin-left:29%"></div><div style="position: absolute; margin-left:32%"><b style="font-color: #fff">Modbus</b></div></svg></svg>
-        <svg  id="chart3"><div id="IEC104" style="position: absolute; margin-left:54%"></div><div style="position: absolute; margin-left:57%"><b style="font-color: #fff">IEC104</b></div></svg></svg>
-        <svg  id="chart4"><div id="CIP" style="position: absolute; margin-left:80%"></div><div style="position: absolute; margin-left:83%"><b style="font-color: #fff">CIP</b></div></svg></svg>
+    <div  id="overlay"  style="margin-top: 35%; width:100%"> 
+        <div class="column"><center style="height:50%"><svg id="chart1" ></svg></center><div id="TCP" style="margin-right:16%"></div><div style="margin-right:16%"><b style="font-color: #fff">TCP</b></div></div>
+        <div class="column"><center style="height:50%"><svg id="chart2"></svg></center><div id="ModbusTCP" style="margin-right:16%"></div><div style="margin-right:16%"><b style="font-color: #fff">Modbus</b></div></div>
+        <div class="column"><center style="height:50%"><svg id="chart3"></svg></center><div id="IEC104" style="margin-right:16%"></div><div style="margin-right:16%"><b style="font-color: #fff">IEC104</b></div></div>
+        <div class="column"><center style="height:50%"><svg id="chart4"></svg></center><div id="CIP" style="margin-right:16%"></div><div style="margin-right:16%"><b style="font-color: #fff">CIP</b></div></div>
     </div>
     </div>
 
@@ -527,7 +537,7 @@ span {
       var dataplot_iec = [];
       var dataplot_cip = [];
       var width = 200;
-      var height = 100;
+      var height = 60;
       var globalX = 0;
       var duration = 5;
       // var max = 500;
@@ -550,7 +560,7 @@ span {
       // Draw the axis
       var xAxis = d3.axisBottom().scale(x);
       var axisX = chart.append('g').attr('class', 'x axis')
-      .attr('transform', 'translate(0, 100)')
+      .attr('transform', 'translate(0, 60)')
       .call(xAxis);
       // Draw the grid
       // Append the holder for line chart and fill area
@@ -564,7 +574,7 @@ span {
       
       var xAxis2 = d3.axisBottom().scale(x);
       var axisX2 = chart2.append('g').attr('class', 'x axis')
-      .attr('transform', 'translate(0, 100)')
+      .attr('transform', 'translate(0, 60)')
       .call(xAxis2);
       // Draw the grid
       // Append the holder for line chart and fill area
@@ -578,7 +588,7 @@ span {
       
       var xAxis3 = d3.axisBottom().scale(x);
       var axisX3 = chart3.append('g').attr('class', 'x axis')
-      .attr('transform', 'translate(0, 100)')
+      .attr('transform', 'translate(0, 60)')
       .call(xAxis3);
       // Draw the grid
       // Append the holder for line chart and fill area
@@ -591,7 +601,7 @@ span {
       
       var xAxis4 = d3.axisBottom().scale(x);
       var axisX4 = chart4.append('g').attr('class', 'x axis')
-      .attr('transform', 'translate(0, 100)')
+      .attr('transform', 'translate(0, 60)')
       .call(xAxis4);
       // Draw the grid
       // Append the holder for line chart and fill area
