@@ -76,7 +76,7 @@ def createGraph(dpkts):
             words = line.split(',')
             malicious[words[0]+":"+words[1]]=1
             malicious[words[1]+":"+words[0]]=1
-            malicious_nodes[str(words[1])] = 0
+            malicious_nodes[str(words[0])] = 0
             line = f.readline()
     G=nx.Graph()
     G.add_nodes_from(devices.keys())
@@ -93,6 +93,8 @@ def createGraph(dpkts):
     if set(comm) == set(prev_comm) and set(devices.keys()) == set(prev_devices.keys()):
         return
     
+    if len(list(G.nodes))>100:
+        return
     all_nodes = list(G.nodes())
     for u in G.edges():
         if u[0]+":"+u[1] not in malicious:
@@ -254,7 +256,7 @@ class TCP_Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>0) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>40) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:

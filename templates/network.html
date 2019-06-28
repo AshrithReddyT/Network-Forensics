@@ -357,6 +357,9 @@ span {
             document.getElementById("l").innerHTML = json.links.length;
             document.getElementById("n").innerHTML = json.nodes.length;
             
+            if(json.nodes.length>100){
+              alert("Under DDOS");
+            }
             csl = 0;
             cusl = 0;
             for(c=0;c<json.links.length;c++){
@@ -495,10 +498,10 @@ span {
     </script>
 
     <div  id="overlay"  style="margin-top: 35%; margin-left: 10%"> 
-        <svg id="chart1" ><div style="position: absolute; margin-left:9%"><b style="font-color: #fff">TCP</b></div></svg>
-        <svg  id="chart2"><div style="position: absolute; margin-left:32%"><b style="font-color: #fff">Modbus</b></div></svg></svg>
-        <svg  id="chart3"><div style="position: absolute; margin-left:57%"><b style="font-color: #fff">IEC104</b></div></svg></svg>
-        <svg  id="chart4"><div style="position: absolute; margin-left:83%"><b style="font-color: #fff">CIP</b></div></svg></svg>
+        <svg id="chart1" ><div id="TCP" style="position: absolute; margin-left:6%"></div><div style="position: absolute; margin-left:9%"><b style="font-color: #fff">TCP</b></div></svg>
+        <svg  id="chart2"><div id="ModbusTCP" style="position: absolute; margin-left:29%"></div><div style="position: absolute; margin-left:32%"><b style="font-color: #fff">Modbus</b></div></svg></svg>
+        <svg  id="chart3"><div id="IEC104" style="position: absolute; margin-left:54%"></div><div style="position: absolute; margin-left:57%"><b style="font-color: #fff">IEC104</b></div></svg></svg>
+        <svg  id="chart4"><div id="CIP" style="position: absolute; margin-left:80%"></div><div style="position: absolute; margin-left:83%"><b style="font-color: #fff">CIP</b></div></svg></svg>
     </div>
     </div>
 
@@ -618,6 +621,11 @@ span {
                   d1["protoc"]
               ];
             });
+          var total = da.length;
+          var tcp_data = 0;
+          var modbus_tcp_data = 0;
+          var iec_data = 0;
+          var cip_data = 0;
           for(i=0; i<da.length; i++){
             var point = {
                 x: da[i][0],
@@ -625,17 +633,32 @@ span {
               };
             if(da[i][2]=="TCP"){
               data_tcp.push(point);
+              tcp_data++;
             }
             else if(da[i][2]=="ModbusTCP"){
               data_modbus.push(point);
+              modbus_tcp_data++;
             }
             else if(da[i][2]=="IEC104"){
               data_iec.push(point);
+              iec_data++;
             }
             if(da[i][2]=="CIP"){
               data_cip.push(point);
+              cip_data++;
             }
           }
+          if(total!=0){
+            tcp_data = Math.round((tcp_data/total)*100);
+            modbus_tcp_data = Math.round((modbus_tcp_data/total)*100);
+            iec_data = Math.round((iec_data/total)*100);
+            cip_data = Math.round((cip_data/total)*100);
+            document.getElementById("TCP").innerHTML = tcp_data;
+            document.getElementById("ModbusTCP").innerHTML = modbus_tcp_data;
+            document.getElementById("IEC104").innerHTML = iec_data;
+            document.getElementById("CIP").innerHTML = cip_data;
+          }
+          
         // console.log(data_tcp.length);
         // console.log(data_iec.length);
         // console.log(data_modbus.length);
@@ -709,7 +732,7 @@ span {
           .duration(duration)
           .ease(d3.easeLinear,.1)
         
-        path2.datum(dataplot_iec)
+        path2.datum(dataplot_modbus)
         .attr('class', 'smoothline')
         .attr('d', line);
         // // Shift the chart left
@@ -724,7 +747,7 @@ span {
           .duration(duration)
           .ease(d3.easeLinear,.1)
       
-        path3.datum(dataplot_modbus)
+        path3.datum(dataplot_iec)
         .attr('class', 'smoothline')
         .attr('d', line);
         // // Shift the chart left
