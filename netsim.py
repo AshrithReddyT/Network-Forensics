@@ -425,6 +425,8 @@ def ftp(pkt):
 i = 0
 def processPkt(pkt):
 	# print("lol")
+    dport = None
+    sport = None
     if pkt.haslayer(Raw) and pkt.haslayer(TCP):
         dport   = pkt[TCP].dport
         sport   = pkt[TCP].sport
@@ -461,6 +463,11 @@ def processPkt(pkt):
             else:
                 protoc = res[-1].name
 
+            if dport and sport and dport==21 or sport==21:
+                protoc="FTP"
+            
+            if dport and sport and dport==80 or sport==80:
+                protoc="HTTP"
             if(protoc == 'TCP'):
                 if(len(Previous_TCP)>=1000):
                     del Previous_TCP[:100]

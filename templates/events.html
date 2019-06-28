@@ -13,6 +13,12 @@
         background: linear-gradient(to bottom, #000 0%, #000 100%); */
         margin: 0;
         padding: 0;
+        font-family: 'Open Sans', sans-serif;
+		font-size: 20px;
+		font-weight: 300;
+				/* fill: #242424; */
+		text-align: center;
+		cursor: default;
     }
         .link {
             stroke: #ccc;
@@ -67,7 +73,16 @@
         text-decoration: none;
         color: #fff;
         }
-
+        #myInput {
+            background-image: url('{{ url_for('static', filename='searchicon.png') }}'); /* Add a search icon to input */
+            background-position: 10px 12px; /* Position the search icon */
+            background-repeat: no-repeat; /* Do not repeat the icon image */
+            width: 90%; /* Full-width */
+            font-size: 16px; /* Increase font-size */
+            padding: 12px 20px 12px 40px; /* Add some padding */
+            border: 1px solid #ddd; /* Add a grey border */
+            margin-bottom: 12px; /* Add some space below the input */
+            }
     </style>
 </head>
 <body>
@@ -85,20 +100,52 @@
                 </div>
         </div>
         <a href="{{ url_for('events') }}">Events</a>
-        <a href="{{ url_for('incidents') }}">incidents</a>
+        <a href="{{ url_for('incidents') }}">Incidents</a>
         <a href="#Content">About</a>
         <a href="javascript:void(0);" class="icon" onclick="displayMenu()"><i class="fa fa-bars"></i></a>
     </div>
-            
+    </br>
     <script src="{{ url_for('static', filename='js/jquery311.js') }}" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
     <div id="canvas-wrap">
         <canvas id="sky">
             
         </canvas>
+        <script>
+                function myFunction() {
+                  // Declare variables 
+                  var input, filter, table, tr, td, i, txtValue;
+                  input = document.getElementById("myInput");
+                  filter = input.value.toUpperCase();
+                  table = document.getElementById("myTable");
+                  tr = table.getElementsByTagName("tr");
+                
+                  // Loop through all table rows, and hide those who don't match the search query
+                  for (i = 0; i < tr.length; i++) {
+                    td1 = tr[i].getElementsByTagName("td")[0];
+                    td2 = tr[i].getElementsByTagName("td")[1];
+                    td3 = tr[i].getElementsByTagName("td")[2];
+                    td4 = tr[i].getElementsByTagName("td")[3];
+                    td5 = tr[i].getElementsByTagName("td")[4];
+                    if (td1||td2||td3||td4) {
+                      txtValue1 = td1.textContent || td1.innerText;
+                      txtValue2 = td2.textContent || td2.innerText;
+                      txtValue3 = td3.textContent || td3.innerText;
+                      txtValue4 = td4.textContent || td4.innerText;
+                      txtValue5 = td5.textContent || td5.innerText;
+                      if (txtValue1.toUpperCase().indexOf(filter) > -1 || txtValue2.toUpperCase().indexOf(filter) > -1|| txtValue3.toUpperCase().indexOf(filter) > -1 ||txtValue4.toUpperCase().indexOf(filter) > -1 ||txtValue5.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                      } else {
+                        tr[i].style.display = "none";
+                      }
+                    } 
+                  }
+                }
+            </script>    
         <div id="overlay" style="align-content: center;width: 95%; height: 100%, margin-top:15%">
                 <center>
-                        <table border="1">
+                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search Packets">
+                        <table border="1" id="myTable">
                             <tbody>
                                 <tr>
                                     <td><b>Time Stamp</b></td>
@@ -120,7 +167,6 @@
         </div>
     </div>
         
-    
     <script>
     window.onload = function() {
         var canvas = document.getElementById("sky");
