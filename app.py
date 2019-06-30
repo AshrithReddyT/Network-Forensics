@@ -2,6 +2,7 @@ from flask import Flask, request, render_template
 import glob
 import os
 import json
+import datetime
 
 white_list = [{'src': '192.168.100.40'  , 'dst': '192.168.100.115', 'port': '502'},
               {'src': '192.168.100.40', 'dst': '192.168.100.5', 'port' : '502' },
@@ -88,7 +89,7 @@ def pie():
             if len(words)>0 and words[0]!='':
                 for __ in mac_addr:
                     if (words[0] == __['ip'] and words[6]!=['mac']) or (words[2] == __['ip'] and words[7] != __['mac']):
-                        inci = [words[0], words[2], "Possible IP spoofing", words[5]]
+                        inci =  words[-1]
                         lines.append(inci)
                         flag = 1
                 
@@ -108,7 +109,7 @@ def pie():
                         tmp = words[1] if words[1]!='502' else words[3]
                         print(tmp, prev_port, orig_port)
                         if prev_port != tmp and tmp == orig_port:
-                            inci = [words[0], words[2], "Possible MITM (Port Change)", words[5]]
+                            inci = words[-1]
                             lines.append(inci)
                         prev_port = tmp
 
@@ -119,11 +120,11 @@ def pie():
                         words[-1] = 'IEC104'
                     elif(words[1] == '44818' or words[3] == '44818'):
                         words[-1] = 'CIP'
-                    inci = [words[0], words[2], words[4], words[5]]
+                    inci = words[-1]
                     lines.append(inci)
             line = f.readline()
     for line in incidents_lines:
-        print(line)
+        # print(line)
         if line in malicious_events.keys():
             malicious_events[line]+=1
         else:
@@ -164,21 +165,43 @@ def incidents():
     alert_file = "./logs/incidents/alert.csv"
     latest_file = max(list_of_files, key=os.path.getctime)
     lines = []
+    prev = []
     with open(latest_file,"r") as f:
         line = f.readline()
+        line = line.rstrip()
+        count = 1
         while line:
-            lines.append(line.split(","))
+            k = line.split(",")
+            if k[1:] == prev[1:]:
+                count += 1
+                prev = k
+            elif len(prev)==0:
+                prev = k
+            elif k[1:] != prev[1:]:
+                print(k[1:], prev[1:])
+                prev[0] += " ==>" + str(count)
+                lines.append(prev)
+                prev = k
+                count = 1
+            
             line = f.readline()
+            line = line.rstrip()
+        if len(prev) != 0:
+            prev[0] += " ==>" + str(count)
+            lines.append(prev)
+    # print(lines)
+    alert_lines = [] 
     with open(alert_file,"r") as f:
         line = f.readline()
+        # print(line)
         while line:
             words = line.split(',')
             flag = 0
             if len(words)>0 and words[0]!='':
                 for __ in mac_addr:
-                    if (words[0] == __['ip'] and words[6]!=['mac']) or (words[2] == __['ip'] and words[7] != __['mac']):
-                        inci = [words[0], words[2], "Possible IP spoofing", words[5]]
-                        lines.append(inci)
+                    if (words[1] == __['ip'] and words[7]!=['mac']) or (words[3] == __['ip'] and words[8] != __['mac']):
+                        inci = [words[1], words[3], "Possible IP spoofing", words[6]]
+                        alert_lines.append(inci)
                         flag = 1
                 
                 if flag == 1:
@@ -186,31 +209,55 @@ def incidents():
                     continue
 
                 for _ in white_list:
-                    if words[0] == _['src'] and words[2] == _['dst'] and words[1] == _['port'] or words[0] == _['src'] and words[2] == _['dst'] and words[3] == _['port'] or   words[2] == _['src'] and words[0] == _['dst'] and words[1] == _['port'] or words[2] == _['src'] and words[0] == _['dst'] and words[3] == _['port']:
+                    if words[1] == _['src'] and words[3] == _['dst'] and words[2] == _['port'] or words[1] == _['src'] and words[3] == _['dst'] and words[4] == _['port'] or   words[3] == _['src'] and words[1] == _['dst'] and words[2] == _['port'] or words[3] == _['src'] and words[1] == _['dst'] and words[4] == _['port']:
                         flag = 1
                         break
                 
-                if words[0] == '192.168.100.12' and words[2] == '192.168.100.40' or words[0] == '192.168.100.40' and words[2] == '192.168.100.12':
+                if words[1] == '192.168.100.12' and words[3] == '192.168.100.40' or words[1] == '192.168.100.40' and words[3] == '192.168.100.12':
                     if prev_port == 0:
-                        prev_port = orig_port = words[1] if words[1]!='502' else words[3]
+                        prev_port = orig_port = words[2] if words[2]!='502' else words[4]
                     else:
-                        tmp = words[1] if words[1]!='502' else words[3]
-                        print(tmp, prev_port, orig_port)
+                        tmp = words[2] if words[2]!='502' else words[4]
+                        # print(tmp, prev_port, orig_port)
                         if prev_port != tmp and tmp == orig_port:
-                            inci = [words[0], words[2], "Possible MITM (Port Change)", words[5]]
-                            lines.append(inci)
+                            inci = [words[1], words[3], "Possible MITM (Port Change)", words[6]]
+                            alert_lines.append(inci)
                         prev_port = tmp
 
                 if flag == 0:
-                    if(words[1] == '502' or words[3] == '502'):
+                    if(words[2] == '502' or words[4] == '502'):
                         words[-1] = 'ModbusTCP'
-                    elif(words[1] == '2404' or words[3] == '2404'):
+                    elif(words[2] == '2404' or words[4] == '2404'):
                         words[-1] = 'IEC104'
-                    elif(words[1] == '44818' or words[3] == '44818'):
+                    elif(words[2] == '44818' or words[4] == '44818'):
                         words[-1] = 'CIP'
-                    inci = [words[0], words[2], words[4], words[5]]
-                    lines.append(inci)
+                    inci = [words[0],words[1], words[3], words[5], words[6]]
+                    alert_lines.append(inci)
             line = f.readline()
+    # print(alert_lines)
+    prev = []
+    count = 1
+    for alert_line in alert_lines:
+        if alert_line[1:] == prev[1:]:
+            count += 1
+            prev = alert_line
+        elif len(prev)==0:
+            prev = alert_line
+        elif alert_line[1:] != prev[1:]:
+            # print(alert_line[1:], prev[1:])
+            prev[0] += " ==>" + str(count)
+            lines.append(prev)
+            prev = alert_line
+            count = 1
+    if len(prev)!=0:
+        prev[0] += " ==>" + str(count)
+        lines.append(prev)
+    
+    date = []
+    for i in lines:
+        date.append(i[0])
+    lines.sort(key=lambda date: date)
+    # print(lines)
     lines = lines[::-1]
     return render_template('incidents.html', data=lines)
 
@@ -228,4 +275,4 @@ def events():
     return render_template('events.html', data=lines)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='8000', debug=True)
+    app.run(host='0.0.0.0', port='8000', debug=False)

@@ -74,9 +74,9 @@ def createGraph(dpkts):
         line = f.readline()
         while line:
             words = line.split(',')
-            malicious[words[0]+":"+words[1]]=1
-            malicious[words[1]+":"+words[0]]=1
-            malicious_nodes[str(words[0])] = 0
+            malicious[words[1]+":"+words[2]]=1
+            malicious[words[2]+":"+words[1]]=1
+            malicious_nodes[str(words[2])] = 0
             line = f.readline()
     G=nx.Graph()
     G.add_nodes_from(devices.keys())
@@ -93,8 +93,6 @@ def createGraph(dpkts):
     if set(comm) == set(prev_comm) and set(devices.keys()) == set(prev_devices.keys()):
         return
     
-    if len(list(G.nodes))>100:
-        return
     all_nodes = list(G.nodes())
     for u in G.edges():
         if u[0]+":"+u[1] not in malicious:
@@ -190,7 +188,9 @@ class Attacks():
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>25 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
                     ips = ip.split(':')
                     # print(ips)
-                    log = ips[0]+","+ips[1]+",Denial of service(DOS) Attempt,"+ips[2]+"\n"
+                    now = datetime.datetime.now()
+                    tm = now.strftime('%m/%d-%H:%M:%S') + ('.%02d' % now.microsecond)
+                    log = str(tm)+","+ips[0]+","+ips[1]+",Denial of service(DOS) Attempt,"+ips[2]+"\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
@@ -223,8 +223,10 @@ class Attacks():
             if(last_packet[ip] != first_packet[ip]):
                 # print((IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()))
                 if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds())>50 and (last_packet[ip] - first_packet[ip]).total_seconds()>=1 : 
+                    now = datetime.datetime.now()
+                    tm = now.strftime('%m/%d-%H:%M:%S') + ('.%02d' % now.microsecond)
                     ips = ip.split(':')
-                    log = "Multiple IPs,"+ips[0]+",Distributed Denial of service (DDOS) Attempt,"+ips[1]+"\n"
+                    log = str(tm) + ",Multiple IPs,"+ips[0]+",Distributed Denial of service (DDOS) Attempt,"+ips[1]+"\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
@@ -256,9 +258,11 @@ class TCP_Attacks():
         # print(IPs, first_packet, last_packet)
         for ip in IPs.keys():
             if(last_packet[ip] != first_packet[ip]):
-                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>40) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
+                if (IPs[ip]/(last_packet[ip] - first_packet[ip]).total_seconds()>0) and (last_packet[ip] - first_packet[ip]).total_seconds()>=1:
+                    now = datetime.datetime.now()
+                    tm = now.strftime('%m/%d-%H:%M:%S') + ('.%02d' % now.microsecond)
                     ips = ip.split(':')
-                    log = ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
+                    log = str(tm)+","+ips[0]+","+ips[1]+",SYN FLOODING(Direct),TCP\n"
                     with open(INCIDENTS_LOGFILE, 'a+') as f:
                         for line in f:
                             if log in line:
@@ -352,7 +356,9 @@ class Parser:
 
         if user or pw:
             with open(INCIDENTS_LOGFILE, 'a+') as f:
-                log = str(self.src)+','+str(host)+','+'HTTP Login Attempt USER: '+user+' PASS: '+ pw+','+'HTTP\n'
+                now = datetime.datetime.now()
+                tm = now.strftime('%m/%d-%H:%M:%S') + ('.%02d' % now.microsecond)
+                log = str(tm) + ","+ str(self.src)+','+str(host)+','+'HTTP Login Attempt USER: '+user+' PASS: '+ pw+','+'HTTP\n'
                 f.write(log)
             self.dest = host
 
@@ -405,7 +411,9 @@ def ftp(pkt):
     elif 'PASS ' in load:
         pw = load.strip('PASS ')
         with open(INCIDENTS_LOGFILE, 'a+') as f:
-            log = str(src)+','+str(dest)+','+'FTP Login Attempt USER: '+str(ftpuser)+'PASS: '+ str(pw)+','+'FTP\n'
+            now = datetime.datetime.now()
+            tm = now.strftime('%m/%d-%H:%M:%S') + ('.%02d' % now.microsecond)
+            log = str(tm) + "," +str(src)+','+str(dest)+','+'FTP Login Attempt USER: '+str(ftpuser)+'PASS: '+ str(pw)+','+'FTP\n'
             f.write(log)
             ftpuser=None
     
@@ -425,8 +433,6 @@ def ftp(pkt):
 i = 0
 def processPkt(pkt):
 	# print("lol")
-    dport = None
-    sport = None
     if pkt.haslayer(Raw) and pkt.haslayer(TCP):
         dport   = pkt[TCP].dport
         sport   = pkt[TCP].sport
@@ -463,11 +469,6 @@ def processPkt(pkt):
             else:
                 protoc = res[-1].name
 
-            if dport and sport and dport==21 or sport==21:
-                protoc="FTP"
-            
-            if dport and sport and dport==80 or sport==80:
-                protoc="HTTP"
             if(protoc == 'TCP'):
                 if(len(Previous_TCP)>=1000):
                     del Previous_TCP[:100]
